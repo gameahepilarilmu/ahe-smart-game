@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AHE Smart Games - Build Robot Perkalian 8</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #2e0854, #180030);
+      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    h1, h2, h3, .font-kids {
+      font-family: 'Fredoka One', cursive;
+    }
+    
+    /* Neon Glow Effects */
+    .glow-purple {
+      box-shadow: 0 0 20px rgba(199, 0, 104, 0.6);
+    }
+    .glow-gold {
+      box-shadow: 0 0 25px rgba(255, 159, 0, 0.8);
+    }
+    .text-glow {
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* Robot Part Transition Animations */
+    .robot-part {
+      opacity: 0;
+      transform: scale(0) translateY(30px);
+      transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .robot-part.assembled {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* Robot Waving Animation for Win State */
+    @keyframes wave {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(20deg); }
+    }
+    @keyframes bounce-robot {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .winning-robot #tangan-kanan {
+      transform-origin: 140px 110px;
+      animation: wave 1s ease-in-out infinite;
+    }
+    .winning-robot {
+      animation: bounce-robot 2s ease-in-out infinite;
+    }
+
+    /* Power Up Glow Animation */
+    @keyframes powerGlow {
+      0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); }
+      50% { filter: drop-shadow(0 0 25px rgba(255, 215, 0, 1)) brightness(1.2); }
+    }
+    .power-up-active {
+      animation: powerGlow 0.5s ease-in-out infinite;
+    }
+
+    /* Floating Toast Animation */
+    @keyframes slideUpFade {
+      0% { transform: translate(-50%, 50px); opacity: 0; }
+      15% { transform: translate(-50%, 0); opacity: 1; }
+      85% { transform: translate(-50%, 0); opacity: 1; }
+      100% { transform: translate(-50%, -50px); opacity: 0; }
+    }
+    .animate-toast {
+      animation: slideUpFade 0.8s ease-in-out forwards;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c70068;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-between p-4 md:p-6 select-none">
+
+  <!-- BACKGROUND MUSIC / AUDIO SYNTH SCRIPT FOR RETRO SFX -->
+  <script>
+    // Web Audio API Sound Generator
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'correct') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(80, now + 0.3);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if (type === 'powerup') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.8);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+        osc.start(now);
+        osc.stop(now + 0.8);
+      } else if (type === 'complete') {
+        // Simple Fanfare
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, index) => {
+          const noteOsc = audioCtx.createOscillator();
+          const noteGain = audioCtx.createGain();
+          noteOsc.connect(noteGain);
+          noteGain.connect(audioCtx.destination);
+          
+          noteOsc.type = 'triangle';
+          noteOsc.frequency.setValueAtTime(freq, now + index * 0.1);
+          noteGain.gain.setValueAtTime(0.1, now + index * 0.1);
+          noteGain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.1 + 0.3);
+          
+          noteOsc.start(now + index * 0.1);
+          noteOsc.stop(now + index * 0.1 + 0.35);
+        });
+      }
+    }
+  </script>
+
+  <!-- CONFETTI CANVAS FOR WINNING EFFECT -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full hidden"></canvas>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 pointer-events-none"></div>
+
+  <!-- MAIN HEADER / IDENTITY -->
+  <header class="w-full max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4 mb-4 pb-4 border-b border-purple-950/40">
+    <div class="flex items-center gap-3">
+      <!-- High-fidelity Vector representation of the AHE PILAR ILMU Logo -->
+      <div class="w-16 h-16 md:w-20 md:h-20 drop-shadow-lg">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+          <defs>
+            <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#92008B" />
+              <stop offset="100%" stop-color="#D6007A" />
+            </linearGradient>
+            <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFE600" />
+              <stop offset="100%" stop-color="#FF9F00" />
+            </linearGradient>
+          </defs>
+          <!-- Outer Circle -->
+          <circle cx="50" cy="50" r="48" fill="url(#bg-grad)" stroke="#FFFFFF" stroke-width="3" />
+          <!-- Orange/Gold Inner Oval Base for "Ahe" -->
+          <ellipse cx="50" cy="35" rx="36" ry="18" fill="url(#gold-grad)" stroke="#FFFFFF" stroke-width="2" />
+          <!-- "Ahe" text stylized -->
+          <text x="50" y="42" font-family="'Fredoka One', cursive" font-size="22" font-weight="bold" fill="#FFFFFF" text-anchor="middle" stroke="#92008B" stroke-width="1.5">Ahe</text>
+          
+          <!-- Pillar Icon -->
+          <g transform="translate(18, 50) scale(0.6)">
+            <!-- Book on top of pillar -->
+            <path d="M12 5 L35 15 L12 25 L12 5" fill="#FFE600" stroke="#FFFFFF" stroke-width="2" />
+            <path d="M58 5 L35 15 L58 25 L58 5" fill="#FFE600" stroke="#FFFFFF" stroke-width="2" />
+            <!-- Pillar Body -->
+            <rect x="23" y="25" width="24" height="30" fill="#FFFFFF" rx="2" />
+            <line x1="29" y1="29" x2="29" y2="51" stroke="#92008B" stroke-width="3" stroke-linecap="round" />
+            <line x1="35" y1="29" x2="35" y2="51" stroke="#92008B" stroke-width="3" stroke-linecap="round" />
+            <line x1="41" y1="29" x2="41" y2="51" stroke="#92008B" stroke-width="3" stroke-linecap="round" />
+            <!-- Base & Capital of pillar -->
+            <rect x="18" y="21" width="34" height="6" fill="#FFE600" rx="3" stroke="#FFFFFF" stroke-width="1.5" />
+            <rect x="15" y="53" width="40" height="7" fill="#FFE600" rx="3.5" stroke="#FFFFFF" stroke-width="1.5" />
+          </g>
+
+          <!-- PILAR ILMU Text approximation on logo bottom right -->
+          <text x="64" y="62" font-family="'Fredoka One', cursive" font-size="9" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">Bimbel</text>
+          <text x="64" y="71" font-family="'Fredoka One', cursive" font-size="10" fill="#FFE600" text-anchor="middle" font-weight="900">PILAR</text>
+          <text x="64" y="81" font-family="'Fredoka One', cursive" font-size="11" fill="#FFFFFF" text-anchor="middle" font-weight="900">ILMU</text>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="px-2 py-0.5 bg-pink-600 text-white text-[11px] font-bold rounded-full uppercase tracking-wider">Official Game</span>
+          <h1 class="text-xl md:text-2xl text-[#FF9F00] text-glow leading-tight">AHE Smart Game</h1>
+        </div>
+        <p class="text-xs md:text-sm text-gray-300">Bimbel AHE Pilar Ilmu &bull; <span class="italic text-pink-400 font-medium">Belajar Menyenangkan, Potensi Tak Terbatas.</span></p>
+      </div>
+    </div>
+    
+    <!-- Header Stats (visible during play) -->
+    <div id="header-stats" class="hidden flex items-center gap-4 bg-purple-950/50 px-4 py-2 rounded-2xl border border-purple-800/40">
+      <div class="text-center">
+        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Skor</p>
+        <p id="stat-score" class="text-xl font-kids text-yellow-400">0</p>
+      </div>
+      <div class="w-px h-8 bg-purple-800/50"></div>
+      <div class="text-center">
+        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Beruntun</p>
+        <p id="stat-streak" class="text-xl font-kids text-pink-400">0🔥</p>
+      </div>
+      <div class="w-px h-8 bg-purple-800/50"></div>
+      <div class="text-center">
+        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Sisa Waktu</p>
+        <p id="stat-timer" class="text-xl font-kids text-cyan-400">90s</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="w-full max-w-6xl flex-grow flex items-center justify-center py-2 md:py-6">
+    
+    <!-- SCREEN 1: WELCOME / STUDENT INFO -->
+    <section id="welcome-screen" class="w-full max-w-lg bg-purple-950/40 border border-purple-800/40 rounded-3xl p-6 md:p-8 backdrop-blur-md flex flex-col items-center text-center glow-purple">
+      <div class="inline-block p-4 bg-gradient-to-tr from-pink-600 to-purple-600 rounded-full mb-4 shadow-inner">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-white animate-bounce">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l-4.64 4.64A3.524 3.524 0 013 15.17l4.64-4.64m3.78 4.64l3.11-3.11m-6.89 0l3.11 3.11m0-6.89l3.11 3.11m-3.11-3.11l3.11-3.11m-3.11 3.11L3 6.43A3.524 3.524 0 017.64 1.79l4.64 4.64m3.78-4.64l-3.11 3.11M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+      </div>
+      
+      <h2 class="text-2xl md:text-3xl text-yellow-400 mb-2 leading-tight">Misi: Bangun Robotmu!</h2>
+      <p class="text-sm text-gray-300 mb-6">Uji keahlian perkalian 8 kamu. Selesaikan 10 tantangan soal acak, setiap jawaban benar merakit bagian robot!</p>
+      
+      <!-- Form Identitas -->
+      <form id="start-form" class="w-full space-y-4 text-left">
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-bold text-pink-400 mb-1" for="input-nama">Nama Lengkap</label>
+          <input required type="text" id="input-nama" placeholder="Masukkan nama kamu..." class="w-full px-4 py-3 bg-purple-900/40 border border-purple-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-purple-300 font-semibold">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-bold text-pink-400 mb-1" for="input-kelas">Kelas</label>
+            <input required type="text" id="input-kelas" placeholder="Contoh: 4-A" class="w-full px-4 py-3 bg-purple-900/40 border border-purple-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-purple-300 font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-bold text-pink-400 mb-1" for="input-absen">No. Absen</label>
+            <input required type="number" id="input-absen" min="1" max="50" placeholder="No Absen" class="w-full px-4 py-3 bg-purple-900/40 border border-purple-700/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-purple-300 font-semibold">
+          </div>
+        </div>
+        
+        <div class="bg-purple-900/30 p-4 rounded-xl border border-purple-800/40 text-xs text-gray-400 space-y-1">
+          <p class="font-bold text-gray-300 mb-1">Cara Bermain:</p>
+          <p>🔢 Ada tepat **10 Soal** perkalian 8 acak.</p>
+          <p>🛠️ Jawab benar minimal **8 Soal** untuk merakit robot secara utuh.</p>
+          <p>🔥 Jawab 3 kali benar berturut-turut untuk bonus **POWER UP!**</p>
+          <p>⏱️ Selesaikan sebelum sisa waktumu habis.</p>
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-gradient-to-r from-pink-600 via-purple-600 to-orange-500 text-white text-lg font-kids rounded-2xl hover:scale-[1.03] transition-all transform shadow-lg hover:shadow-pink-500/20 flex items-center justify-center gap-2">
+          Mulai Merakit Robot! 🚀
+        </button>
+      </form>
+    </section>
+
+    <!-- SCREEN 2: MAIN GAMEPLAY (GRID LAYOUT: LEFT QUESTIONS, RIGHT ROBOT) -->
+    <section id="game-screen" class="hidden w-full flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch justify-center">
+      
+      <!-- LEFT SIDE: QUESTION AREA & CONTROLS -->
+      <div class="flex-1 flex flex-col justify-between bg-purple-950/30 border border-purple-800/40 rounded-3xl p-5 md:p-8 backdrop-blur-md glow-purple min-h-[450px]">
+        
+        <!-- Student Info Header Mini & Question Tracker -->
+        <div class="flex items-center justify-between text-xs text-purple-200 bg-purple-950/60 px-3 py-2 rounded-xl mb-4 border border-purple-800/20">
+          <p>👤 <span id="display-nama" class="font-bold text-white">Siswa</span> (<span id="display-kelas">Kelas</span> - Absen <span id="display-absen">0</span>)</p>
+          <div class="bg-purple-900 px-3 py-1 rounded-lg border border-purple-700 font-bold text-yellow-400 text-center">
+            <span id="display-question-number">Soal 1 dari 10</span>
+          </div>
+        </div>
+
+        <!-- Question Section -->
+        <div class="text-center my-auto flex flex-col items-center">
+          <!-- Power Up Banner Indicator -->
+          <div id="power-up-banner" class="hidden transform scale-0 opacity-0 transition-all duration-300 bg-gradient-to-r from-yellow-400 to-amber-500 text-purple-950 px-6 py-2 rounded-full font-kids text-lg mb-4 shadow-xl border-2 border-white flex items-center gap-2">
+            ⚡ POWER UP ACTIVE! ⚡
+          </div>
+          
+          <p class="text-sm uppercase tracking-widest text-pink-400 font-bold mb-1">Selesaikan Perkalian ini!</p>
+          <h3 id="question-text" class="text-5xl md:text-6xl text-white text-glow tracking-wide mb-6">8 x ? = ...</h3>
+          
+          <!-- Choices Grid -->
+          <div id="choices-grid" class="grid grid-cols-2 gap-4 w-full max-w-md mx-auto">
+            <!-- Dynamically generated buttons -->
+          </div>
+        </div>
+
+        <!-- Progress Bar at Bottom of Left Panel -->
+        <div class="mt-6 pt-4 border-t border-purple-800/30">
+          <div class="flex justify-between items-center text-xs text-gray-400 mb-1.5">
+            <span>Kemajuan Perakitan Robot</span>
+            <span id="progress-percent" class="font-semibold text-pink-400">0%</span>
+          </div>
+          <div class="w-full bg-purple-950/80 rounded-full h-3 overflow-hidden border border-purple-800/50">
+            <div id="progress-bar-fill" class="bg-gradient-to-r from-pink-600 to-yellow-400 h-full w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT SIDE: ROBOT ASSEMBLY CANVAS (ALWAYS VISIBLE DURING PLAY) -->
+      <div class="w-full lg:w-[420px] bg-gradient-to-b from-purple-950/40 to-indigo-950/40 border border-purple-800/40 rounded-3xl p-6 backdrop-blur-md flex flex-col items-center justify-between glow-purple relative overflow-hidden">
+        
+        <!-- Sparkle particles for background -->
+        <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#ff007f_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        
+        <div class="text-center z-10 w-full">
+          <h3 class="text-lg text-yellow-400 leading-tight">Blueprint Robot</h3>
+          <p class="text-[11px] text-gray-300">Merakit model robot: <span class="font-bold text-white">AHE-8-BOT</span></p>
+        </div>
+
+        <!-- Robot Container -->
+        <div class="relative w-full aspect-[4/5] max-h-[340px] flex items-center justify-center my-4 z-10">
+          <!-- Main Robot SVG Assembly -->
+          <svg id="robot-svg" viewBox="0 0 200 250" class="w-full h-full drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] transition-all duration-300">
+            <!-- Shadows & Ground Ring -->
+            <ellipse cx="100" cy="235" rx="55" ry="8" fill="rgba(0,0,0,0.4)" />
+            <ellipse cx="100" cy="235" rx="35" ry="5" fill="rgba(199,0,104,0.3)" class="power-up-active hidden" id="robot-shadow-ring" />
+
+            <!-- PART 7: ANTENNA (Antena) -->
+            <g id="part-antena" class="robot-part">
+              <line x1="100" y1="45" x2="100" y2="20" stroke="#E2E8F0" stroke-width="4" stroke-linecap="round" />
+              <circle cx="100" cy="15" r="8" fill="#FF9F00" stroke="#FFFFFF" stroke-width="2" />
+              <circle cx="100" cy="15" r="4" fill="#FFE600" class="animate-ping" style="animation-duration: 1.5s;" />
+            </g>
+
+            <!-- PART 5: LEFT LEG (Kaki Kiri) -->
+            <g id="part-kaki-kiri" class="robot-part">
+              <rect x="70" y="180" width="16" height="40" rx="4" fill="#3B82F6" stroke="#1D4ED8" stroke-width="2" />
+              <path d="M60 220 H90 V230 C90 230 90 230 60 230 Z" fill="#1D4ED8" />
+            </g>
+
+            <!-- PART 6: RIGHT LEG (Kaki Kanan) -->
+            <g id="part-kaki-kanan" class="robot-part">
+              <rect x="114" y="180" width="16" height="40" rx="4" fill="#3B82F6" stroke="#1D4ED8" stroke-width="2" />
+              <path d="M110 220 H140 V230 C140 230 140 230 110 230 Z" fill="#1D4ED8" />
+            </g>
+
+            <!-- PART 3: LEFT ARM (Tangan Kiri) -->
+            <g id="part-tangan-kiri" class="robot-part">
+              <!-- Shoulder joint -->
+              <circle cx="45" cy="115" r="8" fill="#FF9F00" />
+              <!-- Arm segment -->
+              <rect x="25" y="115" width="15" height="45" rx="6" fill="#3B82F6" stroke="#1E40AF" stroke-width="2" transform="rotate(15, 32, 115)" />
+              <!-- Claw hand -->
+              <path d="M22 160 C15 160 15 170 25 170" stroke="#FF9F00" stroke-width="3" fill="none" stroke-linecap="round" />
+              <path d="M33 160 C40 160 40 170 30 170" stroke="#FF9F00" stroke-width="3" fill="none" stroke-linecap="round" />
+            </g>
+
+            <!-- PART 4: RIGHT ARM (Tangan Kanan) -->
+            <g id="part-tangan-kanan" class="robot-part">
+              <!-- Shoulder joint -->
+              <circle cx="155" cy="115" r="8" fill="#FF9F00" />
+              <!-- Arm segment -->
+              <rect x="160" y="115" width="15" height="45" rx="6" fill="#3B82F6" stroke="#1E40AF" stroke-width="2" transform="rotate(-15, 168, 115)" />
+              <!-- Claw hand -->
+              <path d="M165 160 C158 160 158 170 168 170" stroke="#FF9F00" stroke-width="3" fill="none" stroke-linecap="round" />
+              <path d="M176 160 C183 160 183 170 173 170" stroke="#FF9F00" stroke-width="3" fill="none" stroke-linecap="round" />
+            </g>
+
+            <!-- PART 2: BODY (Badan) -->
+            <g id="part-badan" class="robot-part">
+              <rect x="50" y="95" width="100" height="90" rx="15" fill="url(#bg-grad)" stroke="#FFFFFF" stroke-width="2.5" />
+              <!-- Inner control screen -->
+              <rect x="62" y="107" width="76" height="50" rx="8" fill="#111827" stroke="#4B5563" stroke-width="1.5" />
+              <!-- Battery / Energy level indicator inside body -->
+              <rect x="72" y="117" width="15" height="30" rx="2" fill="#1F2937" />
+              <rect id="energy-bar-1" x="75" y="137" width="9" height="7" fill="#EF4444" opacity="0.3" />
+              <rect id="energy-bar-2" x="75" y="128" width="9" height="7" fill="#F59E0B" opacity="0.3" />
+              <rect id="energy-bar-3" x="75" y="119" width="9" height="7" fill="#10B981" opacity="0.3" />
+              
+              <!-- AHE Decal Brand on Body -->
+              <text x="112" y="136" font-family="'Fredoka One', cursive" font-size="14" fill="#FFFFFF" font-weight="bold">Ahe</text>
+              <text x="112" y="146" font-family="'Quicksand', sans-serif" font-size="6" fill="#F472B6" font-weight="bold" letter-spacing="0.5">8-BOT</text>
+            </g>
+
+            <!-- PART 1: HEAD (Kepala) -->
+            <g id="part-kepala" class="robot-part">
+              <rect x="60" y="40" width="80" height="60" rx="14" fill="#3B82F6" stroke="#FFFFFF" stroke-width="2.5" />
+              <!-- Ear Bolts -->
+              <rect x="52" y="60" width="8" height="20" rx="2" fill="#9CA3AF" />
+              <rect x="140" y="60" width="8" height="20" rx="2" fill="#9CA3AF" />
+              <!-- Default Offline Eyes (black circles) -->
+              <circle cx="85" cy="70" r="10" fill="#111827" />
+              <circle cx="115" cy="70" r="10" fill="#111827" />
+            </g>
+
+            <!-- PART 8: GLOWING EYES (Mata Menyala) -->
+            <g id="part-mata-menyala" class="robot-part">
+              <!-- Glowing neon blue screen eyes overlay -->
+              <circle cx="85" cy="70" r="8" fill="#00FFFF" stroke="#FFFFFF" stroke-width="1" />
+              <circle cx="115" cy="70" r="8" fill="#00FFFF" stroke="#FFFFFF" stroke-width="1" />
+              <!-- Sparkle details -->
+              <circle cx="83" cy="68" r="2.5" fill="#FFFFFF" />
+              <circle cx="113" cy="68" r="2.5" fill="#FFFFFF" />
+              <!-- Digital Smile -->
+              <path d="M92 82 Q100 90 108 82" stroke="#00FFFF" stroke-width="3.5" fill="none" stroke-linecap="round" />
+            </g>
+          </svg>
+        </div>
+
+        <!-- Assembly Live Status Panel inside sidebar -->
+        <div class="bg-purple-950/80 p-3 rounded-2xl w-full text-center border border-purple-800/50 z-10">
+          <p class="text-xs text-gray-400">Bagian Terakhir Dipasang:</p>
+          <p id="assembly-status-text" class="text-sm font-semibold text-yellow-400">Menunggu pengerjaan...</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SCREEN 3: END SCREEN / RESULTS -->
+    <section id="end-screen" class="hidden w-full max-w-xl bg-purple-950/40 border border-purple-800/40 rounded-3xl p-6 md:p-10 backdrop-blur-md flex flex-col items-center text-center glow-purple">
+      
+      <!-- Big Certificate style Badge -->
+      <div class="relative w-36 h-36 mb-6">
+        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-xl">
+          <defs>
+            <linearGradient id="badge-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFE600" />
+              <stop offset="100%" stop-color="#FF9F00" />
+            </linearGradient>
+          </defs>
+          <polygon points="50,5 64,15 80,15 85,30 98,40 93,56 98,72 85,80 80,95 64,95 50,105 36,95 20,95 15,80 2,72 7,56 2,40 15,30 20,15 36,15" fill="url(#badge-gold)" />
+          <circle cx="50" cy="55" r="32" fill="#92008B" stroke="#FFFFFF" stroke-width="2" />
+          <!-- Star icon inside -->
+          <path d="M50 35 L54 46 L66 46 L57 53 L60 65 L50 58 L40 65 L43 53 L34 46 L46 46 Z" fill="#FFE600" />
+        </svg>
+        <span class="absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-1/2 font-kids text-3xl text-white">8</span>
+      </div>
+
+      <h2 id="end-title" class="text-2xl md:text-3xl text-yellow-400 mb-1 leading-tight">Selamat!</h2>
+      <p id="end-subtitle" class="text-sm text-gray-300 mb-6">Kamu berhasil membantu merakit sistem robotik cerdas AHE!</p>
+
+      <!-- Student Certificate Data Box -->
+      <div class="w-full bg-purple-950/70 rounded-2xl p-5 mb-6 border border-purple-800/40 text-left space-y-3">
+        <div class="flex justify-between items-center pb-2 border-b border-purple-800/50">
+          <div>
+            <p class="text-[10px] text-pink-400 uppercase tracking-widest font-bold">Perakit Ahli</p>
+            <p id="end-nama" class="text-lg font-kids text-white">Siswa Teladan</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] text-pink-400 uppercase tracking-widest font-bold">Kelas / Absen</p>
+            <p id="end-kelas-absen" class="text-sm font-semibold text-white">4-A / 12</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 pt-1">
+          <div>
+            <p class="text-xs text-gray-400">Total Nilai</p>
+            <p id="end-score" class="text-2xl font-kids text-yellow-400">100</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400">Benar / Salah</p>
+            <p id="end-correct" class="text-lg font-semibold text-green-400">8 / 2</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400">Persentase Ketepatan</p>
+            <p id="end-accuracy" class="text-2xl font-kids text-cyan-400">100%</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400">Sisa Waktu</p>
+            <p id="end-time-left" class="text-lg font-semibold text-orange-400">45 Detik</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Play Again button -->
+      <button id="btn-restart" class="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-lg font-kids rounded-2xl hover:scale-[1.02] transition-all transform shadow-lg hover:shadow-emerald-500/20 flex items-center justify-center gap-2">
+        Main Lagi & Rakit Ulang 🔄
+      </button>
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="w-full max-w-6xl text-center pt-4 border-t border-purple-950/40 text-xs text-gray-500">
+    <p>&copy; 2026 Bimbel AHE Pilar Ilmu. Hak Cipta Dilindungi.</p>
+  </footer>
+
+  <!-- GAME ENGINE JAVASCRIPT -->
+  <script>
+    // Game Config & Initial States
+    const TOTAL_PARTS = 8;
+    const TOTAL_QUESTIONS_LIMIT = 10; // EXACTLY 10 QUESTIONS AS REQUESTED
+    const GAME_DURATION = 90; // seconds for the whole game
+    
+    // Robot Parts ordered sequentially
+    const ROBOT_PARTS = [
+      { id: 'part-kepala', name: 'Kepala' },
+      { id: 'part-badan', name: 'Badan' },
+      { id: 'part-tangan-kiri', name: 'Tangan Kiri' },
+      { id: 'part-tangan-kanan', name: 'Tangan Kanan' },
+      { id: 'part-kaki-kiri', name: 'Kaki Kiri' },
+      { id: 'part-kaki-kanan', name: 'Kaki Kanan' },
+      { id: 'part-antena', name: 'Antena' },
+      { id: 'part-mata-menyala', name: 'Mata Menyala' }
+    ];
+
+    let questionPool = []; // Shuffled list of multipliers (1 to 10)
+    let currentQuestionIndex = 0; // Tracking question from 0 to 9
+
+    let currentPartIndex = 0; // Starts at 0, goes to 8
+    let streakCount = 0;
+    let score = 0;
+    let totalQuestionsAnswered = 0;
+    let correctAnswersCount = 0;
+    let timerVal = GAME_DURATION;
+    let timerInterval = null;
+    let currentCorrectAnswer = null;
+    let questionActive = false;
+
+    // Student Information Variables
+    let studentName = "";
+    let studentClass = "";
+    let studentAbsen = "";
+
+    // DOM Elements
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const endScreen = document.getElementById('end-screen');
+    const headerStats = document.getElementById('header-stats');
+    
+    const startForm = document.getElementById('start-form');
+    const inputNama = document.getElementById('input-nama');
+    const inputKelas = document.getElementById('input-kelas');
+    const inputAbsen = document.getElementById('input-absen');
+
+    const displayNama = document.getElementById('display-nama');
+    const displayKelas = document.getElementById('display-kelas');
+    const displayAbsen = document.getElementById('display-absen');
+    const displayQuestionNumber = document.getElementById('display-question-number');
+    
+    const statScore = document.getElementById('stat-score');
+    const statStreak = document.getElementById('stat-streak');
+    const statTimer = document.getElementById('stat-timer');
+
+    const questionText = document.getElementById('question-text');
+    const choicesGrid = document.getElementById('choices-grid');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const assemblyStatusText = document.getElementById('assembly-status-text');
+    
+    const robotSvg = document.getElementById('robot-svg');
+    const robotShadowRing = document.getElementById('robot-shadow-ring');
+    const powerUpBanner = document.getElementById('power-up-banner');
+
+    const endTitle = document.getElementById('end-title');
+    const endSubtitle = document.getElementById('end-subtitle');
+    const endNama = document.getElementById('end-nama');
+    const endKelasAbsen = document.getElementById('end-kelas-absen');
+    const endScore = document.getElementById('end-score');
+    const endCorrect = document.getElementById('end-correct');
+    const endAccuracy = document.getElementById('end-accuracy');
+    const endTimeLeft = document.getElementById('end-time-left');
+    const btnRestart = document.getElementById('btn-restart');
+
+    const toastContainer = document.getElementById('toast-container');
+    const confettiCanvas = document.getElementById('confetti-canvas');
+
+    // 1. START GAME TRIGGER
+    startForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      studentName = inputNama.value.trim();
+      studentClass = inputKelas.value.trim();
+      studentAbsen = inputAbsen.value.trim();
+
+      // Populate Display
+      displayNama.textContent = studentName;
+      displayKelas.textContent = studentClass;
+      displayAbsen.textContent = studentAbsen;
+
+      // Swap screens
+      welcomeScreen.classList.add('hidden');
+      headerStats.classList.remove('hidden');
+      gameScreen.classList.remove('hidden');
+
+      initGame();
+    });
+
+    // 2. INITIALIZE GAMEPLAY
+    function initGame() {
+      currentPartIndex = 0;
+      streakCount = 0;
+      score = 0;
+      totalQuestionsAnswered = 0;
+      correctAnswersCount = 0;
+      timerVal = GAME_DURATION;
+      
+      // Generate exactly 10 shuffled multipliers (each from 1 to 10 used exactly once)
+      questionPool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].sort(() => Math.random() - 0.5);
+      currentQuestionIndex = 0;
+
+      // Update UI displays
+      updateStats();
+      resetRobotParts();
+      
+      // Robot visual setups
+      robotSvg.classList.remove('winning-robot');
+      robotSvg.classList.remove('power-up-active');
+      robotShadowRing.classList.add('hidden');
+      
+      // Start clock & first question
+      startTimer();
+      nextQuestion();
+    }
+
+    function updateStats() {
+      statScore.textContent = score;
+      statStreak.textContent = `${streakCount} 🔥`;
+      statTimer.textContent = `${timerVal}s`;
+      
+      // Update Energy bars in robot body based on current progress
+      for (let i = 1; i <= 3; i++) {
+        const bar = document.getElementById(`energy-bar-${i}`);
+        if (bar) {
+          if (currentPartIndex >= i * 2.5) {
+            bar.setAttribute('opacity', '1');
+          } else {
+            bar.setAttribute('opacity', '0.3');
+          }
+        }
+      }
+
+      // Progress Bar calculations (Max is TOTAL_PARTS = 8 parts)
+      const percent = Math.min(100, Math.round((currentPartIndex / TOTAL_PARTS) * 100));
+      progressPercent.textContent = `${percent}%`;
+      progressBarFill.style.width = `${percent}%`;
+    }
+
+    function resetRobotParts() {
+      ROBOT_PARTS.forEach(part => {
+        const el = document.getElementById(part.id);
+        if (el) el.classList.remove('assembled');
+      });
+      assemblyStatusText.textContent = "Mulai menjawab untuk merakit robot!";
+      assemblyStatusText.className = "text-sm font-semibold text-yellow-400";
+    }
+
+    // 3. TIMER
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timerVal--;
+        statTimer.textContent = `${timerVal}s`;
+        
+        if (timerVal <= 10) {
+          statTimer.className = "text-xl font-kids text-red-500 animate-pulse";
+        } else {
+          statTimer.className = "text-xl font-kids text-cyan-400";
+        }
+
+        if (timerVal <= 0) {
+          clearInterval(timerInterval);
+          endGame(currentPartIndex >= TOTAL_PARTS); // End game with what we have
+        }
+      }, 1000);
+    }
+
+    // 4. GENERATE QUESTION
+    function nextQuestion() {
+      // Check if we already finished all 10 questions OR robot is fully assembled
+      if (currentQuestionIndex >= TOTAL_QUESTIONS_LIMIT) {
+        endGame(currentPartIndex >= TOTAL_PARTS);
+        return;
+      }
+      
+      if (currentPartIndex >= TOTAL_PARTS) {
+        endGame(true); // Fully built early!
+        return;
+      }
+
+      questionActive = true;
+      
+      // Update Question tracker text
+      displayQuestionNumber.textContent = `Soal ${currentQuestionIndex + 1} dari ${TOTAL_QUESTIONS_LIMIT}`;
+      
+      // Pick multiplier from the shuffled pool
+      const multiplier = questionPool[currentQuestionIndex];
+      currentCorrectAnswer = 8 * multiplier;
+
+      // Update question view
+      questionText.innerHTML = `8 x <span class="text-yellow-400 font-kids animate-pulse">${multiplier}</span> = ?`;
+
+      // Generate options (4 choices, 1 correct, 3 distractor multipliers of 8)
+      const options = new Set();
+      options.add(currentCorrectAnswer);
+
+      while (options.size < 4) {
+        const randomMultiplier = Math.floor(Math.random() * 10) + 1;
+        options.add(8 * randomMultiplier);
+      }
+
+      // Convert Set to array & shuffle
+      const shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+
+      // Render options to UI
+      choicesGrid.innerHTML = '';
+      shuffledOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "py-4 px-6 bg-purple-900/60 hover:bg-pink-600 border border-purple-700 hover:border-pink-500 rounded-2xl text-xl font-kids text-white transition-all transform hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center";
+        btn.textContent = opt;
+        btn.addEventListener('click', () => selectAnswer(opt, btn));
+        choicesGrid.appendChild(btn);
+      });
+    }
+
+    // 5. PROCESS ANSWER
+    function selectAnswer(selectedValue, buttonEl) {
+      if (!questionActive) return;
+      questionActive = false; // block fast double clicks
+
+      totalQuestionsAnswered++;
+
+      // Disable all options buttons visually to show feedback
+      const buttons = choicesGrid.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (parseInt(btn.textContent) === currentCorrectAnswer) {
+          btn.className = "py-4 px-6 bg-green-500 border-2 border-white rounded-2xl text-xl font-kids text-white shadow-lg flex items-center justify-center";
+        } else if (parseInt(btn.textContent) === selectedValue) {
+          btn.className = "py-4 px-6 bg-red-500 border-2 border-white rounded-2xl text-xl font-kids text-white shadow-lg flex items-center justify-center";
+        } else {
+          btn.className = "py-4 px-6 bg-purple-950/40 border border-purple-800 opacity-50 rounded-2xl text-xl font-kids text-white flex items-center justify-center";
+        }
+      });
+
+      if (selectedValue === currentCorrectAnswer) {
+        // Correct Answer Logic
+        correctAnswersCount++;
+        streakCount++;
+        score += (streakCount >= 3) ? 20 : 10; // Extra points for streak
+        
+        playSound('correct');
+        
+        // Assemble Next Robot Part (only if we haven't completed 8 parts)
+        if (currentPartIndex < TOTAL_PARTS) {
+          const partToAssemble = ROBOT_PARTS[currentPartIndex];
+          const partEl = document.getElementById(partToAssemble.id);
+          if (partEl) {
+            partEl.classList.add('assembled');
+          }
+          assemblyStatusText.textContent = `Berhasil! Part Terpasang: ${partToAssemble.name}`;
+          assemblyStatusText.className = "text-sm font-semibold text-green-400";
+          currentPartIndex++;
+        } else {
+          assemblyStatusText.textContent = `Jawaban Benar! Robot sudah selesai dirakit.`;
+          assemblyStatusText.className = "text-sm font-semibold text-yellow-400";
+        }
+        
+        updateStats();
+
+        // Check Streak for Power Up
+        if (streakCount >= 3) {
+          triggerPowerUp();
+        }
+
+        // Auto Advance to Next Question
+        currentQuestionIndex++;
+        setTimeout(() => {
+          nextQuestion();
+        }, 1000);
+
+      } else {
+        // Incorrect Answer Logic
+        streakCount = 0; // reset streak
+        playSound('wrong');
+        
+        showToast("❌ Coba Lagi!", "bg-red-500 text-white border-2 border-white");
+        assemblyStatusText.textContent = `Gagal! Silakan coba lagi.`;
+        assemblyStatusText.className = "text-sm font-semibold text-red-400";
+        
+        updateStats();
+
+        // Auto Advance even on wrong answer (fluid gameplay)
+        currentQuestionIndex++;
+        setTimeout(() => {
+          nextQuestion();
+        }, 800);
+      }
+    }
+
+    // 6. POWER UP ANIMATION EFFECT
+    function triggerPowerUp() {
+      playSound('powerup');
+      showToast("⚡ POWER UP ACTIVE! +20 SKOR ⚡", "bg-yellow-400 text-purple-950 border-2 border-white font-bold text-base");
+      
+      // Screen Flash & Robot Glow for 1s
+      robotSvg.classList.add('power-up-active');
+      robotShadowRing.classList.remove('hidden');
+      powerUpBanner.classList.remove('hidden');
+      setTimeout(() => {
+        powerUpBanner.classList.add('scale-100', 'opacity-100');
+      }, 50);
+
+      setTimeout(() => {
+        robotSvg.classList.remove('power-up-active');
+        robotShadowRing.classList.add('hidden');
+        powerUpBanner.classList.remove('scale-100', 'opacity-100');
+        setTimeout(() => {
+          powerUpBanner.classList.add('hidden');
+        }, 300);
+      }, 1200);
+    }
+
+    // 7. TOAST NOTIFICATION
+    function showToast(text, stylingClass) {
+      const toast = document.createElement('div');
+      toast.className = `px-6 py-3 rounded-full font-kids shadow-2xl animate-toast flex items-center justify-center gap-2 ${stylingClass}`;
+      toast.textContent = text;
+      toastContainer.appendChild(toast);
+
+      // Self cleanup
+      setTimeout(() => {
+        toast.remove();
+      }, 800);
+    }
+
+    // 8. END GAME SCREEN
+    function endGame(isAssembledComplete) {
+      clearInterval(timerInterval);
+      gameScreen.classList.add('hidden');
+      headerStats.classList.add('hidden');
+      endScreen.classList.remove('hidden');
+
+      // Fill Certificate Stats
+      endNama.textContent = studentName;
+      endKelasAbsen.textContent = `${studentClass} / Absen ${studentAbsen}`;
+      endScore.textContent = score;
+      endCorrect.textContent = `${correctAnswersCount} Benar / ${totalQuestionsAnswered - correctAnswersCount} Salah`;
+      
+      const accuracy = totalQuestionsAnswered > 0 ? Math.round((correctAnswersCount / totalQuestionsAnswered) * 100) : 0;
+      endAccuracy.textContent = `${accuracy}%`;
+      endTimeLeft.textContent = `${timerVal} Detik`;
+
+      if (isAssembledComplete) {
+        // Perfect assembled or answered correctly at least 8 questions
+        endTitle.textContent = "Robot Selesai Dirakit! 🤖🏆";
+        endSubtitle.textContent = `Luar biasa, ${studentName}! Robot AHE-8-BOT kamu sekarang sepenuhnya aktif dan siap beraksi setelah menyelesaikan tantangan!`;
+        
+        playSound('complete');
+        startConfetti();
+        
+        // Show waving assembled robot preview on end screen!
+        const miniRobotWrap = document.createElement('div');
+        miniRobotWrap.className = "w-36 h-44 mx-auto my-4 bg-purple-900/30 border border-purple-800/40 rounded-2xl p-2 relative flex items-center justify-center";
+        
+        // Get copy of current active SVG robot
+        const cloneSvg = robotSvg.cloneNode(true);
+        cloneSvg.classList.add('winning-robot');
+        miniRobotWrap.appendChild(cloneSvg);
+        
+        // Insert before standard stats card
+        endScreen.insertBefore(miniRobotWrap, endScreen.querySelector('.w-full.bg-purple-950\\/70'));
+      } else {
+        // Did not finish assembly (less than 8 correct answers out of 10)
+        endTitle.textContent = "Perakitan Belum Selesai! 🛠️⚡";
+        endSubtitle.textContent = `Kerja bagus, ${studentName}! Robot kamu belum selesai dirakit karena butuh minimal 8 bagian aktif. Ayo coba lagi dan dapatkan skor lebih tinggi!`;
+      }
+    }
+
+    // 9. RESTART ACTION
+    btnRestart.addEventListener('click', () => {
+      // Clean up cloned robot representation if any exists from previous win
+      const existingClone = endScreen.querySelector('.winning-robot')?.parentElement;
+      if (existingClone) {
+        existingClone.remove();
+      }
+
+      endScreen.classList.add('hidden');
+      stopConfetti();
+      
+      // Direct gameplay restart with current student info
+      headerStats.classList.remove('hidden');
+      gameScreen.classList.remove('hidden');
+      initGame();
+    });
+
+    // 10. CONFETTI ANIMATION CODE (PURE JAVASCRIPT & CANVAS)
+    let confettiActive = false;
+    let confettiArray = [];
+    const colors = ['#f472b6', '#3b82f6', '#f59e0b', '#10b981', '#06b6d4', '#ff007f'];
+
+    function startConfetti() {
+      confettiCanvas.classList.remove('hidden');
+      confettiActive = true;
+      confettiArray = [];
+      resizeConfettiCanvas();
+      
+      for(let i = 0; i < 150; i++) {
+        confettiArray.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          speedX: Math.random() * 4 - 2,
+          speedY: Math.random() * 3 + 2,
+          rotation: Math.random() * 360,
+          rotationSpeed: Math.random() * 5 - 2.5
+        });
+      }
+      requestAnimationFrame(updateConfetti);
+    }
+
+    function stopConfetti() {
+      confettiActive = false;
+      confettiCanvas.classList.add('hidden');
+    }
+
+    function resizeConfettiCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', () => {
+      if(confettiActive) resizeConfettiCanvas();
+    });
+
+    function updateConfetti() {
+      if(!confettiActive) return;
+      const ctx = confettiCanvas.getContext('2d');
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+      confettiArray.forEach(p => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.rotation += p.rotationSpeed;
+
+        if (p.y > confettiCanvas.height) {
+          p.y = -20;
+          p.x = Math.random() * confettiCanvas.width;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+        ctx.restore();
+      });
+
+      requestAnimationFrame(updateConfetti);
+    }
+  </script>
+</body>
+</html>

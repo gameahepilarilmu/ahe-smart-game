@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donut Factory - Perkalian 2 - Ahe Smart Games</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #fbcfe8 0%, #f3e8ff 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-bubble {
+      font-family: 'Fredoka One', cursive;
+    }
+
+    /* Animasi Donat Goyang saat Salah */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20%, 60% { transform: translateX(-8px) rotate(-5deg); }
+      40%, 80% { transform: translateX(8px) rotate(5deg); }
+    }
+    .shake-anim {
+      animation: shake 0.5s ease-in-out;
+    }
+
+    /* Animasi Donat Berhasil Dikemas (Benar) */
+    @keyframes packDonut {
+      0% { transform: scale(1) translateY(0); opacity: 1; }
+      50% { transform: scale(1.1) translateY(-30px); opacity: 0.8; }
+      100% { transform: scale(0.3) translate(150px, 100px); opacity: 0; }
+    }
+    .pack-anim {
+      animation: packDonut 0.8s forwards ease-in-out;
+    }
+
+    /* Animasi Super Baker Pop */
+    @keyframes superBaker {
+      0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+      70% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+      100% { transform: scale(1) rotate(5deg); }
+    }
+    .super-baker-anim {
+      animation: superBaker 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Efek Apung Lucu untuk Donat */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .float-donut {
+      animation: float 3s ease-in-out infinite;
+    }
+    .float-donut:nth-child(2n) {
+      animation-delay: 0.5s;
+    }
+    .float-donut:nth-child(3n) {
+      animation-delay: 1s;
+    }
+
+    /* Kustom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c084fc;
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a855f7;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800">
+
+  <!-- HEADER IDENTITAS RESMI -->
+  <header class="bg-white/80 backdrop-blur-md border-b-4 border-pink-200 shadow-md p-3 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Logo Ahe Re-creation Premium (SVG Offline) -->
+      <div class="flex items-center gap-3">
+        <svg class="w-14 h-14 drop-shadow" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="95" fill="none" stroke="#f59e0b" stroke-width="6"/>
+          <circle cx="100" cy="100" r="90" fill="#a21caf" />
+          <path d="M 100,10 C 145,10 185,45 185,100 C 185,155 145,190 100,190 C 55,190 15,155 15,100 C 15,45 55,10" fill="url(#gradLogo)"/>
+          <defs>
+            <linearGradient id="gradLogo" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#7e22ce;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <!-- Elips Belakang Tulisan Ahe -->
+          <ellipse cx="100" cy="75" rx="75" ry="38" fill="#f59e0b" />
+          <ellipse cx="100" cy="75" rx="71" ry="34" fill="#86198f" />
+          <!-- Teks Ahe -->
+          <text x="100" y="90" font-family="'Fredoka One', cursive, sans-serif" font-size="52" fill="#ffffff" text-anchor="middle" font-weight="bold" letter-spacing="1">Ahe</text>
+          <!-- Banner Bimbel -->
+          <text x="135" y="118" font-family="'Quicksand', sans-serif" font-weight="bold" font-style="italic" font-size="14" fill="#ffffff" text-anchor="middle">Bimbel</text>
+          <!-- Teks PILAR ILMU -->
+          <text x="100" y="142" font-family="'Fredoka One', cursive, sans-serif" font-size="25" fill="#ffffff" text-anchor="middle" font-weight="black" stroke="#581c87" stroke-width="2">PILAR</text>
+          <text x="100" y="167" font-family="'Fredoka One', cursive, sans-serif" font-size="25" fill="#e11d48" text-anchor="middle" font-weight="black" stroke="#ffffff" stroke-width="2">ILMU</text>
+        </svg>
+        <div>
+          <h1 class="font-bubble text-purple-700 text-lg leading-tight">Ahe Smart Game</h1>
+          <p class="text-xs text-pink-600 font-bold">Bimbel Ahe Pilar Ilmu</p>
+          <p class="text-[10px] text-amber-500 italic font-semibold">Belajar Menyenangkan, Potensi Tak Terbatas.</p>
+        </div>
+      </div>
+
+      <!-- Skor Ringkas / Status Atas (Hanya tampil saat bermain) -->
+      <div id="topStats" class="hidden flex items-center gap-4 bg-purple-100 px-4 py-2 rounded-full border border-purple-200">
+        <div class="text-sm">
+          <span class="text-slate-500">Pemain:</span>
+          <span id="displayPlayer" class="font-bold text-purple-800">-</span>
+        </div>
+        <div class="h-6 w-[2px] bg-purple-300"></div>
+        <div class="text-sm">
+          <span class="text-slate-500">Skor:</span>
+          <span id="displayScore" class="font-bubble text-pink-600 text-base">0</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center p-4">
+    <!-- KONTEN UTAMA DENGAN DYNAMIC VIEW -->
+    <div class="w-full max-w-5xl bg-white/95 rounded-3xl shadow-2xl border-4 border-purple-300 p-6 relative overflow-hidden">
+      
+      <!-- ================= SCREEN 1: IDENTITAS & PETUNJUK ================= -->
+      <div id="screenIntro" class="flex flex-col items-center text-center py-8">
+        <div class="relative mb-6 float-donut">
+          <!-- Ilustrasi Donat Maskot -->
+          <svg class="w-32 h-32" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="50" rx="42" ry="42" fill="#f59e0b"/>
+            <ellipse cx="50" cy="50" rx="36" ry="36" fill="#f97316"/>
+            <!-- Selai Pink -->
+            <path d="M 16,50 C 16,28 28,16 50,16 C 72,16 84,28 84,50 C 84,65 78,72 70,72 C 65,72 63,65 58,65 C 53,65 52,78 45,78 C 38,78 35,70 30,70 C 25,70 20,78 16,50 Z" fill="#ec4899"/>
+            <circle cx="50" cy="50" r="14" fill="#ffffff"/>
+            <!-- Taburan Mises -->
+            <rect x="35" y="28" width="8" height="3" rx="1" transform="rotate(15 35 28)" fill="#facc15" />
+            <rect x="60" y="30" width="8" height="3" rx="1" transform="rotate(-25 60 30)" fill="#60a5fa" />
+            <rect x="25" y="45" width="8" height="3" rx="1" transform="rotate(45 25 45)" fill="#4ade80" />
+            <rect x="70" y="48" width="8" height="3" rx="1" transform="rotate(70 70 48)" fill="#ffffff" />
+            <rect x="42" y="70" width="8" height="3" rx="1" transform="rotate(-15 42 70)" fill="#fb923c" />
+          </svg>
+        </div>
+
+        <h2 class="font-bubble text-3xl md:text-4xl text-purple-700 mb-2">Pabrik Donat Perkalian 2!</h2>
+        <p class="text-slate-600 max-w-md mb-6">Kemasi donat-donat lezat ke dalam kotak dengan menjawab perkalian 2 secara tepat!</p>
+
+        <!-- Form Identitas -->
+        <div class="w-full max-w-sm bg-purple-50 p-6 rounded-2xl border-2 border-purple-200 mb-6 text-left">
+          <div class="mb-4">
+            <label class="block text-purple-700 font-bold mb-2 text-sm" for="playerName">Nama Lengkap Siswa</label>
+            <input type="text" id="playerName" class="w-full px-4 py-3 rounded-xl border-2 border-purple-300 focus:outline-none focus:border-purple-600 font-semibold" placeholder="Masukkan namamu..." required>
+          </div>
+          <div>
+            <label class="block text-purple-700 font-bold mb-2 text-sm" for="playerClass">Kelas</label>
+            <select id="playerClass" class="w-full px-4 py-3 rounded-xl border-2 border-purple-300 focus:outline-none focus:border-purple-600 font-semibold">
+              <option value="SD Kelas 1">SD Kelas 1</option>
+              <option value="SD Kelas 2" selected>SD Kelas 2</option>
+              <option value="SD Kelas 3">SD Kelas 3</option>
+              <option value="SD Kelas 4">SD Kelas 4</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Petunjuk Singkat -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl max-w-md text-left mb-6">
+          <h4 class="font-bold text-amber-800 text-sm mb-1">Cara Bermain:</h4>
+          <p class="text-xs text-amber-900 leading-relaxed">
+            Pilihlah donat dengan jawaban yang tepat. Setiap jawaban benar akan mengemas donat ke dalam kardus. Jawab cepat dan berturut-turut untuk mendapatkan bonus <strong>SUPER BAKER!</strong>
+          </p>
+        </div>
+
+        <button onclick="startGame()" class="font-bubble bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-600 hover:to-pink-600 text-white text-xl px-12 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-200 w-full max-w-xs">
+          Mulai Pabrik! 🍩
+        </button>
+      </div>
+
+
+      <!-- ================= SCREEN 2: GAMEPLAY UTAMA ================= -->
+      <div id="screenGameplay" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Sisi Kiri & Tengah: Soal dan Pilihan Donat -->
+        <div class="lg:col-span-2 flex flex-col justify-between">
+          
+          <!-- Atas: Progress & Timer -->
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-1 text-sm font-semibold text-purple-800">
+              <span>Progress Pembuatan</span>
+              <span id="questionCounter">Soal 1 dari 10</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-purple-100 h-4 rounded-full overflow-hidden border border-purple-200">
+              <div id="progressBar" class="bg-gradient-to-r from-pink-500 to-purple-600 h-full transition-all duration-300" style="width: 10%;"></div>
+            </div>
+          </div>
+
+          <!-- Bagian Papan Tulis Soal -->
+          <div class="bg-slate-800 rounded-3xl border-8 border-amber-800 p-6 md:p-8 text-center text-white relative shadow-inner mb-6">
+            <div class="absolute top-2 left-2 right-2 flex justify-between px-4 text-xs text-slate-400">
+              <span>Bimbel Ahe Pilar Ilmu</span>
+              <span>Perkalian 2</span>
+            </div>
+            <p class="text-yellow-400 text-lg md:text-xl font-bold mt-2">Berapakah hasil dari:</p>
+            <div id="questionText" class="font-bubble text-4xl md:text-6xl text-white my-4 tracking-wider">2 x 3 = ?</div>
+            <div class="text-slate-300 text-xs md:text-sm italic">Pilihlah salah satu donat di bawah dengan jawaban yang benar!</div>
+          </div>
+
+          <!-- Kontainer untuk Efek Feedback Mengambang -->
+          <div class="relative h-12 flex justify-center items-center overflow-hidden mb-2">
+            <!-- Kombo Alert -->
+            <div id="comboBanner" class="hidden absolute super-baker-anim bg-amber-400 text-purple-950 font-bubble px-4 py-1.5 rounded-full border-2 border-white shadow-md text-sm md:text-base">
+              🔥 SUPER BAKER! Bonus +20 Poin!
+            </div>
+            <!-- Sukses Alert -->
+            <div id="successAlert" class="hidden absolute text-emerald-600 font-bubble text-lg md:text-xl animate-bounce">
+              🍩 Donat Berhasil Dikemas!
+            </div>
+          </div>
+
+          <!-- Pilihan Jawaban (Donat) -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Template Donat Interaktif (4 Opsi) -->
+            <button onclick="checkAnswer(0)" id="option0" class="donut-btn relative flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl border-4 border-purple-200 transition duration-200 active:scale-95 group overflow-hidden">
+              <div class="donut-svg-container w-20 h-20 md:w-24 md:h-24 float-donut">
+                <!-- SVG Donat Pink -->
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <ellipse cx="50" cy="50" rx="42" ry="42" fill="#fb923c"/>
+                  <path d="M 16,50 C 16,28 28,16 50,16 C 72,16 84,28 84,50 C 84,65 78,72 70,72 C 65,72 63,65 58,65 C 53,65 52,78 45,78 C 38,78 35,70 30,70 C 25,70 20,78 16,50 Z" fill="#f43f5e"/>
+                  <circle cx="50" cy="50" r="14" fill="#faf5ff"/>
+                  <rect x="35" y="28" width="8" height="3" rx="1" transform="rotate(15 35 28)" fill="#facc15" />
+                  <rect x="60" y="30" width="8" height="3" rx="1" transform="rotate(-25 60 30)" fill="#ffffff" />
+                  <rect x="25" y="45" width="8" height="3" rx="1" transform="rotate(45 25 45)" fill="#4ade80" />
+                </svg>
+              </div>
+              <span class="font-bubble text-2xl md:text-3xl text-purple-800 mt-2 text-val">12</span>
+            </button>
+
+            <button onclick="checkAnswer(1)" id="option1" class="donut-btn relative flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl border-4 border-purple-200 transition duration-200 active:scale-95 group overflow-hidden">
+              <div class="donut-svg-container w-20 h-20 md:w-24 md:h-24 float-donut">
+                <!-- SVG Donat Cokelat -->
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <ellipse cx="50" cy="50" rx="42" ry="42" fill="#fb923c"/>
+                  <path d="M 16,50 C 16,28 28,16 50,16 C 72,16 84,28 84,50 C 84,65 78,72 70,72 C 65,72 63,65 58,65 C 53,65 52,78 45,78 C 38,78 35,70 30,70 C 25,70 20,78 16,50 Z" fill="#78350f"/>
+                  <circle cx="50" cy="50" r="14" fill="#faf5ff"/>
+                  <rect x="35" y="28" width="8" height="3" rx="1" transform="rotate(20 35 28)" fill="#fb7185" />
+                  <rect x="60" y="30" width="8" height="3" rx="1" transform="rotate(-15 60 30)" fill="#facc15" />
+                  <rect x="70" y="48" width="8" height="3" rx="1" transform="rotate(35 70 48)" fill="#ffffff" />
+                </svg>
+              </div>
+              <span class="font-bubble text-2xl md:text-3xl text-purple-800 mt-2 text-val">8</span>
+            </button>
+
+            <button onclick="checkAnswer(2)" id="option2" class="donut-btn relative flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl border-4 border-purple-200 transition duration-200 active:scale-95 group overflow-hidden">
+              <div class="donut-svg-container w-20 h-20 md:w-24 md:h-24 float-donut">
+                <!-- SVG Donat Kuning -->
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <ellipse cx="50" cy="50" rx="42" ry="42" fill="#fb923c"/>
+                  <path d="M 16,50 C 16,28 28,16 50,16 C 72,16 84,28 84,50 C 84,65 78,72 70,72 C 65,72 63,65 58,65 C 53,65 52,78 45,78 C 38,78 35,70 30,70 C 25,70 20,78 16,50 Z" fill="#eab308"/>
+                  <circle cx="50" cy="50" r="14" fill="#faf5ff"/>
+                  <rect x="35" y="28" width="8" height="3" rx="1" transform="rotate(-30 35 28)" fill="#ec4899" />
+                  <rect x="60" y="30" width="8" height="3" rx="1" transform="rotate(15 60 30)" fill="#3b82f6" />
+                  <rect x="25" y="45" width="8" height="3" rx="1" transform="rotate(60 25 45)" fill="#22c55e" />
+                </svg>
+              </div>
+              <span class="font-bubble text-2xl md:text-3xl text-purple-800 mt-2 text-val">6</span>
+            </button>
+
+            <button onclick="checkAnswer(3)" id="option3" class="donut-btn relative flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl border-4 border-purple-200 transition duration-200 active:scale-95 group overflow-hidden">
+              <div class="donut-svg-container w-20 h-20 md:w-24 md:h-24 float-donut">
+                <!-- SVG Donat Ungu -->
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                  <ellipse cx="50" cy="50" rx="42" ry="42" fill="#fb923c"/>
+                  <path d="M 16,50 C 16,28 28,16 50,16 C 72,16 84,28 84,50 C 84,65 78,72 70,72 C 65,72 63,65 58,65 C 53,65 52,78 45,78 C 38,78 35,70 30,70 C 25,70 20,78 16,50 Z" fill="#a855f7"/>
+                  <circle cx="50" cy="50" r="14" fill="#faf5ff"/>
+                  <rect x="35" y="28" width="8" height="3" rx="1" transform="rotate(45 35 28)" fill="#ffffff" />
+                  <rect x="60" y="35" width="8" height="3" rx="1" transform="rotate(-45 60 35)" fill="#eab308" />
+                  <rect x="40" y="68" width="8" height="3" rx="1" transform="rotate(10 40 68)" fill="#fb7185" />
+                </svg>
+              </div>
+              <span class="font-bubble text-2xl md:text-3xl text-purple-800 mt-2 text-val">10</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sisi Kanan: Kotak Kemasan Donat Dinamis -->
+        <div class="bg-amber-100/60 rounded-3xl border-4 border-dashed border-amber-400 p-4 flex flex-col justify-between items-center relative">
+          <div class="text-center w-full">
+            <h3 class="font-bubble text-amber-800 text-lg mb-1">Kemasan Kardus</h3>
+            <p class="text-xs text-amber-700">Kumpulkan donat yang dikemas!</p>
+            <div class="text-xs font-bold text-purple-800 bg-white/75 py-1 px-3 rounded-full mt-2 inline-block">
+              Berhasil: <span id="packedCount">0</span> Donat
+            </div>
+          </div>
+
+          <!-- Kardus Box Utama -->
+          <div class="relative w-full h-64 flex items-center justify-center my-4">
+            <!-- Box SVG -->
+            <svg class="w-48 h-48 drop-shadow-xl" viewBox="0 0 120 120">
+              <!-- Kardus Belakang -->
+              <polygon points="10,80 60,110 110,80 110,40 60,70 10,40" fill="#d97706" />
+              <!-- Bagian Dalam Gelap -->
+              <polygon points="10,40 60,70 110,40 60,10" fill="#78350f" />
+              <!-- Sisi Samping Kiri -->
+              <polygon points="10,40 60,70 60,110 10,80" fill="#b45309" />
+              <!-- Sisi Samping Kanan -->
+              <polygon points="60,70 110,40 110,80 60,110" fill="#92400e" />
+              <!-- Tutup Atas Terbuka Kiri -->
+              <polygon points="10,40 60,10 40,-10 -10,20" fill="#f59e0b" opacity="0.95"/>
+              <!-- Tutup Atas Terbuka Kanan -->
+              <polygon points="110,40 60,10 80,-10 130,20" fill="#d97706" opacity="0.95"/>
+            </svg>
+
+            <!-- Grid Donat Mini yang Muncul ketika Benar -->
+            <div id="miniDonutsContainer" class="absolute inset-0 p-8 grid grid-cols-4 gap-2 items-center justify-center pointer-events-none">
+              <!-- Donat-donat mini akan dimasukkan ke sini via JS -->
+            </div>
+          </div>
+
+          <!-- Indikator Kombo Api -->
+          <div class="bg-white/80 p-3 rounded-2xl border border-purple-200 text-center w-full">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Rantai Kombo</div>
+            <div class="flex justify-center gap-1.5">
+              <span id="comboDot1" class="w-4 h-4 rounded-full bg-slate-300 transition duration-300"></span>
+              <span id="comboDot2" class="w-4 h-4 rounded-full bg-slate-300 transition duration-300"></span>
+              <span id="comboDot3" class="w-4 h-4 rounded-full bg-slate-300 transition duration-300"></span>
+            </div>
+            <p id="comboText" class="text-xs text-purple-700 font-bold mt-1">Satu jawaban benar lagi untuk Combo!</p>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= SCREEN 3: LAPORAN / HASIL BELAJAR ================= -->
+      <div id="screenResult" class="hidden flex flex-col items-center py-6">
+        
+        <!-- Efek Selamat Atas -->
+        <div class="text-center mb-6">
+          <span class="text-5xl">🏆</span>
+          <h2 class="font-bubble text-3xl md:text-4xl text-purple-700 mt-2">Semua Donat Siap Kirim!</h2>
+          <p class="text-slate-600 text-sm md:text-base">Wah, kamu adalah Baker yang handal! Berikut laporan kerjamu hari ini:</p>
+        </div>
+
+        <!-- Kartu Hasil Statistik -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl mb-8">
+          
+          <!-- Identitas & Nilai -->
+          <div class="bg-gradient-to-br from-purple-100 to-indigo-100 p-6 rounded-2xl border-2 border-purple-300 flex flex-col justify-between">
+            <div>
+              <div class="text-xs uppercase text-purple-500 font-bold tracking-widest">Siswa Berprestasi</div>
+              <h3 id="resName" class="font-bubble text-xl text-purple-900 mt-1">-</h3>
+              <p id="resClass" class="text-xs text-purple-700 font-semibold">-</p>
+            </div>
+            <div class="border-t border-purple-200 my-4"></div>
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs text-slate-500 font-bold">Skor Akhir</div>
+                <div id="resScore" class="font-bubble text-3xl md:text-4xl text-pink-600">0</div>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-slate-500 font-bold">Ketepatan</div>
+                <div id="resAccuracy" class="font-bubble text-3xl md:text-4xl text-purple-700">0%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detail Kemasan -->
+          <div class="bg-amber-50 p-6 rounded-2xl border-2 border-amber-300 flex flex-col justify-between">
+            <div>
+              <h4 class="font-bubble text-amber-800 text-sm mb-3">Statistik Pengemasan</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-slate-600">Total Soal:</span>
+                  <span id="resTotal" class="font-bold">0</span>
+                </div>
+                <div class="flex justify-between text-emerald-600 font-semibold">
+                  <span>Donat Berhasil (Benar):</span>
+                  <span id="resCorrect">0</span>
+                </div>
+                <div class="flex justify-between text-rose-500 font-semibold">
+                  <span>Donat Rusak (Salah):</span>
+                  <span id="resWrong">0</span>
+                </div>
+                <div class="flex justify-between text-purple-700 font-semibold">
+                  <span>Combo Super Baker:</span>
+                  <span id="resCombo">0</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 bg-amber-100 p-2 rounded-xl text-center text-[11px] text-amber-800 font-bold">
+              Kardus Kemasan Donat Terisi Penuh! 🎉
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Kotak Evaluasi Pembelajaran & Penjelasan -->
+        <div class="w-full max-w-2xl bg-white border-2 border-slate-200 p-6 rounded-2xl mb-8">
+          <h4 class="font-bubble text-purple-700 text-base mb-2">💡 Tips Belajar Perkalian 2</h4>
+          <p class="text-slate-600 text-xs md:text-sm leading-relaxed">
+            Perkalian 2 sebenarnya adalah konsep <strong>penjumlahan ganda</strong>. Menghitung <code class="bg-slate-100 px-1 py-0.5 rounded text-pink-600 font-bold">2 x 5</code> sama artinya dengan menjumlahkan angka 5 sebanyak 2 kali (<code class="bg-slate-100 px-1 rounded text-purple-700">5 + 5 = 10</code>). Teruslah berlatih agar proses mengemas donatmu menjadi semakin cepat!
+          </p>
+        </div>
+
+        <!-- Tombol Aksi Akhir -->
+        <div class="flex gap-4 w-full max-w-md justify-center">
+          <button onclick="resetGame()" class="font-bubble bg-purple-600 hover:bg-purple-700 text-white px-8 py-3.5 rounded-2xl shadow-lg transition duration-200 w-1/2">
+            Main Lagi 🔄
+          </button>
+          <button onclick="backToIntro()" class="font-bubble bg-amber-500 hover:bg-amber-600 text-white px-8 py-3.5 rounded-2xl shadow-lg transition duration-200 w-1/2">
+            Ganti Nama 👤
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- CONFETTI DAN EFEK LAYER PENUH -->
+  <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-50 overflow-hidden hidden"></div>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 py-4 px-6 text-center text-xs border-t-4 border-amber-500">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+      <p>© 2026 Bimbel Ahe Pilar Ilmu. All Rights Reserved.</p>
+      <div class="flex items-center gap-1.5 text-[11px] bg-slate-800 px-3 py-1 rounded-full text-amber-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Ahe Smart Games - Media Belajar Digital Aktif
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ========================================================================
+    // LOGIKA PERMAINAN & ACURAN DINAMIS PERKALIAN 2
+    // ========================================================================
+    let questions = [];
+
+    // Fungsi untuk membuat 10 soal perkalian 2 dengan pengali acak (1 s.d 10)
+    function generateRandomQuestions() {
+      const multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      
+      // Shuffle pengali menggunakan Fisher-Yates
+      for (let i = multipliers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [multipliers[i], multipliers[j]] = [multipliers[j], multipliers[i]];
+      }
+
+      const generatedList = [];
+      multipliers.forEach(n => {
+        const correctAnswer = 2 * n;
+
+        // Cari 3 distraktor unik dari kumpulan hasil perkalian 2 lainnya
+        const pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(x => x !== n);
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        const distractors = [pool[0], pool[1], pool[2]].map(x => 2 * x);
+
+        // Gabungkan jawaban benar dengan distraktor, lalu acak posisi opsi jawaban (0-3)
+        const options = [correctAnswer, ...distractors];
+        for (let i = options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+
+        generatedList.push({
+          q: `2 x ${n}`,
+          options: options,
+          answer: correctAnswer,
+          explanation: `2 x ${n} artinya ada 2 kelompok berisi ${n} donat. Jadi, ${n} + ${n} = ${correctAnswer}.`
+        });
+      });
+
+      return generatedList;
+    }
+
+    // Variabel State Permainan
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let comboCount = 0;
+    let totalCombosAchieved = 0;
+    let playerName = "";
+    let playerClass = "";
+    let isAnswering = false;
+
+    // Element Selector
+    const screenIntro = document.getElementById("screenIntro");
+    const screenGameplay = document.getElementById("screenGameplay");
+    const screenResult = document.getElementById("screenResult");
+    
+    const inputPlayerName = document.getElementById("playerName");
+    const selectPlayerClass = document.getElementById("playerClass");
+
+    // Mulai Game
+    function startGame() {
+      const nameVal = inputPlayerName.value.trim();
+      if (!nameVal) {
+        alert("Silakan masukkan namamu terlebih dahulu untuk mulai mengemas donat!");
+        return;
+      }
+      
+      playerName = nameVal;
+      playerClass = selectPlayerClass.value;
+
+      // Update Tampilan Stats Atas
+      document.getElementById("displayPlayer").innerText = playerName;
+      document.getElementById("topStats").classList.remove("hidden");
+
+      // Transisi Screen
+      screenIntro.classList.add("hidden");
+      screenGameplay.classList.remove("hidden");
+
+      resetVariables();
+      loadQuestion();
+    }
+
+    // Reset Variabel Permainan
+    function resetVariables() {
+      questions = generateRandomQuestions(); // Buat soal acak baru
+      currentQuestionIndex = 0;
+      score = 0;
+      correctCount = 0;
+      wrongCount = 0;
+      comboCount = 0;
+      totalCombosAchieved = 0;
+      isAnswering = false;
+
+      document.getElementById("displayScore").innerText = "0";
+      document.getElementById("packedCount").innerText = "0";
+      document.getElementById("miniDonutsContainer").innerHTML = "";
+      updateComboDots();
+    }
+
+    // Muat Soal Saat Ini
+    function loadQuestion() {
+      if (currentQuestionIndex >= questions.length) {
+        endGame();
+        return;
+      }
+
+      isAnswering = false;
+      const currentQuestion = questions[currentQuestionIndex];
+
+      // Update Teks Soal & Progress Bar
+      document.getElementById("questionText").innerText = currentQuestion.q + " = ?";
+      document.getElementById("questionCounter").innerText = `Soal ${currentQuestionIndex + 1} dari ${questions.length}`;
+      
+      const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+      document.getElementById("progressBar").style.width = `${progressPercent}%`;
+
+      // Set Jawaban ke Tombol
+      const buttons = [
+        document.getElementById("option0"),
+        document.getElementById("option1"),
+        document.getElementById("option2"),
+        document.getElementById("option3")
+      ];
+
+      buttons.forEach((btn, index) => {
+        const optionValue = currentQuestion.options[index];
+        btn.querySelector(".text-val").innerText = optionValue;
+        
+        // Reset kelas animasi
+        btn.classList.remove("shake-anim", "pack-anim");
+        btn.classList.add("bg-purple-50", "border-purple-200");
+        btn.classList.remove("bg-emerald-100", "border-emerald-400", "bg-rose-100", "border-rose-400");
+        btn.disabled = false;
+      });
+
+      // Sembunyikan alert jika ada
+      document.getElementById("successAlert").classList.add("hidden");
+      document.getElementById("comboBanner").classList.add("hidden");
+    }
+
+    // Fungsi Evaluasi Jawaban Pemain
+    function checkAnswer(selectedIndex) {
+      if (isAnswering) return;
+      isAnswering = true;
+
+      const currentQuestion = questions[currentQuestionIndex];
+      const selectedValue = currentQuestion.options[selectedIndex];
+      const isCorrect = (selectedValue === currentQuestion.answer);
+
+      const buttons = [
+        document.getElementById("option0"),
+        document.getElementById("option1"),
+        document.getElementById("option2"),
+        document.getElementById("option3")
+      ];
+
+      // Nonaktifkan semua tombol agar tidak bisa diklik ulang selama animasi berlangsung
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (isCorrect) {
+        // Logika Jawaban Benar
+        correctCount++;
+        score += 100;
+        comboCount++;
+
+        // Visual feedback tombol benar
+        buttons[selectedIndex].classList.remove("bg-purple-50", "border-purple-200");
+        buttons[selectedIndex].classList.add("bg-emerald-100", "border-emerald-400", "pack-anim");
+
+        // Perbarui Skor di UI
+        document.getElementById("displayScore").innerText = score;
+        document.getElementById("packedCount").innerText = correctCount;
+
+        // Tambahkan donat mini ke kardus
+        addMiniDonutToBox();
+
+        // Tampilkan pesan sukses sebentar
+        const successAlert = document.getElementById("successAlert");
+        successAlert.classList.remove("hidden");
+
+        // Cek Sistem Combo
+        if (comboCount >= 3) {
+          triggerSuperBakerCombo();
+        } else {
+          updateComboDots();
+        }
+
+        // Lanjut otomatis setelah 1 detik
+        setTimeout(() => {
+          currentQuestionIndex++;
+          loadQuestion();
+        }, 1000);
+
+      } else {
+        // Logika Jawaban Salah
+        wrongCount++;
+        comboCount = 0; // Combo putus
+
+        // Visual feedback tombol salah
+        buttons[selectedIndex].classList.remove("bg-purple-50", "border-purple-200");
+        buttons[selectedIndex].classList.add("bg-rose-100", "border-rose-400", "shake-anim");
+
+        // Tunjukkan mana jawaban yang seharusnya benar
+        buttons.forEach((btn, index) => {
+          if (currentQuestion.options[index] === currentQuestion.answer) {
+            btn.classList.add("bg-emerald-50", "border-emerald-300");
+          }
+        });
+
+        updateComboDots();
+
+        // Lanjut otomatis setelah 1.5 detik agar anak bisa melihat jawaban yang benar (Edukasi Bermakna)
+        setTimeout(() => {
+          currentQuestionIndex++;
+          loadQuestion();
+        }, 1500);
+      }
+    }
+
+    // Tambah Donat ke Kardus Samping
+    function addMiniDonutToBox() {
+      const container = document.getElementById("miniDonutsContainer");
+      const miniDonut = document.createElement("div");
+      miniDonut.className = "w-7 h-7 transform rotate-" + Math.floor(Math.random() * 90);
+      
+      // Pilih warna acak untuk donat di dalam kardus
+      const frostingColors = ["#f43f5e", "#78350f", "#eab308", "#a855f7"];
+      const randomColor = frostingColors[Math.floor(Math.random() * frostingColors.length)];
+
+      miniDonut.innerHTML = `
+        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-sm">
+          <ellipse cx="50" cy="50" rx="42" ry="42" fill="#fb923c"/>
+          <path d="M 16,50 C 16,28 28,16 50,16 C 72,16 84,28 84,50 C 84,65 78,72 70,72 C 65,72 63,65 58,65 C 53,65 52,78 45,78 C 38,78 35,70 30,70 C 25,70 20,78 16,50 Z" fill="${randomColor}"/>
+          <circle cx="50" cy="50" r="14" fill="#fef3c7"/>
+        </svg>
+      `;
+      container.appendChild(miniDonut);
+    }
+
+    // Trigger Combo Super Baker
+    function triggerSuperBakerCombo() {
+      comboCount = 0; // Reset counter combo setelah terpicu
+      totalCombosAchieved++;
+      score += 20; // Bonus poin
+
+      document.getElementById("displayScore").innerText = score;
+      
+      // Update Bulatan Combo
+      updateComboDots();
+
+      // Jalankan animasi Super Baker Banner
+      const comboBanner = document.getElementById("comboBanner");
+      comboBanner.classList.remove("hidden");
+    }
+
+    // Update Visual Bulatan Combo
+    function updateComboDots() {
+      const dot1 = document.getElementById("comboDot1");
+      const dot2 = document.getElementById("comboDot2");
+      const dot3 = document.getElementById("comboDot3");
+      const comboText = document.getElementById("comboText");
+
+      // Reset
+      dot1.className = "w-4 h-4 rounded-full bg-slate-300 transition duration-300";
+      dot2.className = "w-4 h-4 rounded-full bg-slate-300 transition duration-300";
+      dot3.className = "w-4 h-4 rounded-full bg-slate-300 transition duration-300";
+
+      if (comboCount === 1) {
+        dot1.className = "w-4 h-4 rounded-full bg-amber-400 animate-pulse";
+        comboText.innerText = "Bagus! Dapatkan 2 jawaban benar berturut-turut lagi!";
+      } else if (comboCount === 2) {
+        dot1.className = "w-4 h-4 rounded-full bg-amber-400";
+        dot2.className = "w-4 h-4 rounded-full bg-pink-500 animate-pulse";
+        comboText.innerText = "1 langkah lagi menuju SUPER BAKER!";
+      } else {
+        comboText.innerText = "Ayo raih 3 jawaban benar beruntun!";
+      }
+    }
+
+    // Akhir Permainan (Laporan Belajar)
+    function endGame() {
+      screenGameplay.classList.add("hidden");
+      screenResult.classList.remove("hidden");
+
+      // Menghitung Persentase Akurasi
+      const accuracy = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+
+      // Update Teks Laporan
+      document.getElementById("resName").innerText = playerName;
+      document.getElementById("resClass").innerText = playerClass;
+      document.getElementById("resScore").innerText = score;
+      document.getElementById("resAccuracy").innerText = `${accuracy}%`;
+      
+      document.getElementById("resTotal").innerText = questions.length;
+      document.getElementById("resCorrect").innerText = correctCount;
+      document.getElementById("resWrong").innerText = wrongCount;
+      document.getElementById("resCombo").innerText = totalCombosAchieved;
+
+      // Jalankan Sebaran Confetti
+      launchConfetti();
+    }
+
+    // Reset untuk main lagi (Tanpa ganti nama)
+    function resetGame() {
+      screenResult.classList.add("hidden");
+      screenGameplay.classList.remove("hidden");
+      resetVariables();
+      loadQuestion();
+    }
+
+    // Kembali ke Intro (Ganti nama & kelas)
+    function backToIntro() {
+      screenResult.classList.add("hidden");
+      screenIntro.classList.remove("hidden");
+      document.getElementById("topStats").classList.add("hidden");
+    }
+
+    // Generator Efek Confetti Sederhana (SVG)
+    function launchConfetti() {
+      const container = document.getElementById("confettiContainer");
+      container.innerHTML = "";
+      container.classList.remove("hidden");
+
+      const colors = ["#f43f5e", "#ec4899", "#a855f7", "#3b82f6", "#eab308", "#10b981"];
+
+      for (let i = 0; i < 50; i++) {
+        const piece = document.createElement("div");
+        const size = Math.floor(Math.random() * 12) + 8;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        piece.style.position = "absolute";
+        piece.style.width = `${size}px`;
+        piece.style.height = `${size}px`;
+        piece.style.backgroundColor = color;
+        piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.top = `-20px`;
+        piece.style.opacity = Math.random();
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+        // Animasi Jatuh Kustom
+        const duration = Math.random() * 2 + 2;
+        piece.style.transition = `transform ${duration}s linear, top ${duration}s linear, opacity ${duration}s ease-out`;
+
+        container.appendChild(piece);
+
+        // Memicu transisi CSS setelah elemen dimasukkan
+        setTimeout(() => {
+          piece.style.top = "105vh";
+          piece.style.transform = `rotate(${Math.random() * 1000}deg) translateX(${Math.random() * 100 - 50}px)`;
+          piece.style.opacity = "0";
+        }, 100);
+      }
+
+      // Sembunyikan container setelah animasi selesai
+      setTimeout(() => {
+        container.classList.add("hidden");
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

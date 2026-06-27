@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHE Target Shoot - Perkalian 4</title>
+    <style>
+        /* CSS Root Variables & Theme (AHE Identity Colors) */
+        :root {
+            --primary-purple: #4a0e4e;
+            --secondary-pink: #d81b60;
+            --accent-gold: #ffb300;
+            --accent-blue: #00bcd4;
+            --bg-dark: #210324;
+            --text-light: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: radial-gradient(circle, var(--primary-purple) 0%, var(--bg-dark) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            min-height: 600px;
+            background: rgba(33, 3, 36, 0.85);
+            border: 3px solid var(--accent-gold);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255, 179, 0, 0.2);
+            padding: 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            margin: 16px;
+        }
+
+        /* --- LOGO SVG BRANDING --- */
+        .brand-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        .logo-container {
+            width: 110px;
+            height: 110px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            text-transform: uppercase;
+        }
+
+        /* --- SCREEN MANAGEMENT --- */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            width: 100%;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- TYPOGRAPHY & FORMS --- */
+        h1 {
+            color: var(--accent-gold);
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 8px;
+            text-shadow: 0 3px 0px rgba(0,0,0,0.4);
+        }
+
+        p.subtitle {
+            font-size: 1rem;
+            text-align: center;
+            color: #e0e0e0;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #ffcc80;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--accent-gold);
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 10px rgba(255, 179, 0, 0.5);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--secondary-pink) 0%, #ad1457 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(216, 27, 96, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(216, 27, 96, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* --- GAMEPLAY DASHBOARD --- */
+        .hud {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 18px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 16px;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hud-label {
+            font-size: 0.75rem;
+            color: #ccc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hud-val {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-gold));
+            transition: width 0.3s ease;
+        }
+
+        /* --- QUESTION BOX --- */
+        .question-box {
+            background: radial-gradient(circle, #5c0f61 0%, #300236 100%);
+            border: 2px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        /* --- COMBO INDICATOR --- */
+        .combo-badge {
+            position: absolute;
+            top: -24px;
+            right: 12px;
+            background: linear-gradient(135deg, #ff9100, #ff3d00);
+            color: white;
+            padding: 6px 14px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            border-radius: 20px;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(255,61,0,0.5);
+            animation: bounce 0.4s infinite alternate;
+            display: none;
+            transform-origin: center;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-5px) scale(1.05); }
+        }
+
+        /* --- TARGET SHOOTING AREA --- */
+        .target-area {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            width: 100%;
+            flex-grow: 1;
+            align-content: center;
+            min-height: 220px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px dashed rgba(255, 179, 0, 0.15);
+        }
+
+        /* TARGET BUTTON (Lebih kecil & mendukung animasi gerak lambat) */
+        .target {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin: auto;
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .target:hover {
+            transform: scale(1.1);
+        }
+
+        /* Variasi Animasi Bergerak Perlahan (Kecepatan Rendah) */
+        .move-horizontal-1 {
+            animation: moveHorizontal 4s ease-in-out infinite alternate;
+        }
+        .move-horizontal-2 {
+            animation: moveHorizontal 5s ease-in-out infinite alternate-reverse;
+        }
+        .move-vertical-1 {
+            animation: moveVertical 4.5s ease-in-out infinite alternate;
+        }
+        .move-vertical-2 {
+            animation: moveVertical 5.5s ease-in-out infinite alternate-reverse;
+        }
+        .move-diagonal {
+            animation: moveDiagonal 6s ease-in-out infinite alternate;
+        }
+
+        /* Definisi Keyframes untuk Gerakan Lambat */
+        @keyframes moveHorizontal {
+            0% { transform: translateX(-15px); }
+            100% { transform: translateX(15px); }
+        }
+
+        @keyframes moveVertical {
+            0% { transform: translateY(-15px); }
+            100% { transform: translateY(15px); }
+        }
+
+        @keyframes moveDiagonal {
+            0% { transform: translate(-10px, -10px); }
+            100% { transform: translate(10px, 10px); }
+        }
+
+        /* Target Illustration inside Button */
+        .target-svg {
+            width: 100%;
+            height: 100%;
+            transition: all 0.2s;
+        }
+
+        .target-number {
+            position: absolute;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        /* Animations on Target */
+        .shake {
+            animation: shake 0.35s ease-in-out !important; /* Timpa animasi gerak saat salah */
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shatter {
+            animation: shatter 0.4s ease-out forwards !important; /* Timpa animasi gerak saat pecah */
+        }
+
+        @keyframes shatter {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; filter: hue-rotate(90deg) brightness(1.5); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* --- REPORT SCREEN --- */
+        .report-box {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 16px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .report-card {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .report-label {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .report-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-gold);
+        }
+
+        /* --- REVIEW LIST (PEMBAHASAN) --- */
+        .review-title {
+            align-self: flex-start;
+            font-size: 1.1rem;
+            color: #ffcc80;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .review-list {
+            width: 100%;
+            max-height: 180px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+            align-items: center;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+        }
+
+        .review-q {
+            font-weight: bold;
+        }
+
+        .review-correct {
+            color: #4caf50;
+        }
+
+        .review-wrong {
+            color: #f44336;
+        }
+
+        .review-desc {
+            font-size: 0.8rem;
+            color: #00bcd4;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* Custom Scrollbar for Review */
+        .review-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .review-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        .review-list::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 3px;
+        }
+
+        /* --- CONFETTI CANVAS --- */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- FOOTER INSTRUCTIONS --- */
+        .footer-note {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #888;
+            margin-top: 16px;
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 640px) {
+            .game-container {
+                padding: 16px;
+                min-height: 520px;
+            }
+
+            .logo-container {
+                width: 90px;
+                height: 90px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .question-text {
+                font-size: 1.8rem;
+            }
+
+            .target-area {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                min-height: 240px;
+            }
+
+            .target {
+                width: 65px;
+                height: 65px;
+            }
+
+            .target-number {
+                font-size: 1.15rem;
+            }
+
+            .hud-val {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Confetti for victory screen -->
+        <canvas id="confetti-canvas"></canvas>
+
+        <!-- Brand Identity Header -->
+        <div class="brand-header">
+            <div class="logo-container">
+                <!-- Vector SVG recreated of Logo AHE Pilar Ilmu -->
+                <svg viewBox="0 0 120 120" width="100%" height="100%">
+                    <defs>
+                        <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+                            <stop offset="0%" stop-color="#e91e63" />
+                            <stop offset="60%" stop-color="#9c27b0" />
+                            <stop offset="100%" stop-color="#4a148c" />
+                        </radialGradient>
+                        <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ffe082" />
+                            <stop offset="50%" stop-color="#ffb300" />
+                            <stop offset="100%" stop-color="#ff8f00" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Outer Golden Rim -->
+                    <circle cx="60" cy="60" r="56" fill="url(#bgGrad)" stroke="url(#goldBorder)" stroke-width="4"/>
+                    <!-- Inner Ring -->
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="2,2" opacity="0.8"/>
+                    
+                    <!-- Oval Ahe Panel -->
+                    <ellipse cx="60" cy="42" rx="42" ry="24" fill="url(#bgGrad)" stroke="url(#goldBorder)" stroke-width="3"/>
+                    
+                    <!-- White text "Ahe" -->
+                    <text x="60" y="50" font-family="'Arial Black', sans-serif" font-weight="900" font-size="25" fill="#ffffff" text-anchor="middle" letter-spacing="-1">Ahe</text>
+                    
+                    <!-- Bimbel banner text -->
+                    <text x="75" y="68" font-family="'Brush Script MT', cursive, sans-serif" font-style="italic" font-weight="bold" font-size="10" fill="#ffffff" text-anchor="middle">Bimbel</text>
+                    
+                    <!-- "PILAR ILMU" Pillar Representation & Text -->
+                    <g transform="translate(18, 56)">
+                        <!-- Pillar Icon Base & Capital -->
+                        <path d="M 5,36 L 25,36 L 23,40 L 7,40 Z" fill="#ffffff" />
+                        <path d="M 7,16 L 23,16 L 25,20 L 5,20 Z" fill="#ffffff" />
+                        <!-- Pillar Shaft Lines -->
+                        <line x1="10" y1="20" x2="10" y2="36" stroke="#ffffff" stroke-width="2"/>
+                        <line x1="15" y1="20" x2="15" y2="36" stroke="#ffffff" stroke-width="2"/>
+                        <line x1="20" y1="20" x2="20" y2="36" stroke="#ffffff" stroke-width="2"/>
+                        
+                        <!-- Open Book Icon on top of Pillar -->
+                        <path d="M 6,15 Q 15,10 15,15 Q 15,10 24,15 L 24,11 Q 15,6 15,11 Q 15,6 6,11 Z" fill="#ffb300" />
+                        
+                        <!-- PILAR ILMU text -->
+                        <text x="56" y="24" font-family="'Impact', sans-serif" font-size="14" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">PILAR</text>
+                        <text x="56" y="38" font-family="'Impact', sans-serif" font-size="15" fill="#e91e63" text-anchor="middle" letter-spacing="0.5" stroke="#ffffff" stroke-width="0.5">ILMU</text>
+                    </g>
+                    
+                    <!-- Bottom banner values -->
+                    <path d="M 25,100 L 95,100" stroke="url(#goldBorder)" stroke-width="1.5" />
+                    <circle cx="60" cy="100" r="2.5" fill="#ffb300" />
+                    <text x="60" y="110" font-family="sans-serif" font-size="5.5" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">Belajar • Berprestasi • Berkarakter</text>
+                </svg>
+            </div>
+            <div class="tagline">AHE Smart Games</div>
+        </div>
+
+        <!-- ================= SCREEN 1: WELCOME SCREEN ================= -->
+        <div id="screen-welcome" class="screen active">
+            <h1>Target Shoot Perkalian 4</h1>
+            <p class="subtitle">Bimbel AHE Pilar Ilmu - Belajar Menyenangkan, Potensi Tak Terbatas.</p>
+            
+            <div class="input-group">
+                <label for="student-name">Nama Lengkap Siswa</label>
+                <input type="text" id="student-name" placeholder="Masukkan nama kamu..." autocomplete="off">
+            </div>
+            <div style="display: flex; gap: 12px; width: 100%; max-width: 400px; margin-bottom: 24px;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label for="student-class">Kelas</label>
+                    <input type="text" id="student-class" placeholder="Contoh: 3 SD" autocomplete="off">
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label for="student-number">No. Absen</label>
+                    <input type="number" id="student-number" placeholder="No." min="1" autocomplete="off">
+                </div>
+            </div>
+
+            <button class="btn" onclick="startGame()">Mulai Bermain</button>
+            <p class="footer-note">Petunjuk: Tembak sasaran yang memiliki nilai perkalian yang tepat secepat mungkin!</p>
+        </div>
+
+        <!-- ================= SCREEN 2: GAMEPLAY SCREEN ================= -->
+        <div id="screen-game" class="screen">
+            <!-- HUD Info -->
+            <div class="hud">
+                <div class="hud-item">
+                    <span class="hud-label">Siswa</span>
+                    <span id="hud-name" class="hud-val">-</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Waktu</span>
+                    <span id="hud-timer" class="hud-val">00s</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Skor</span>
+                    <span id="hud-score" class="hud-val">0</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div id="game-progress" class="progress-bar"></div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="question-box">
+                <div id="combo-badge" class="combo-badge">Combo ×1</div>
+                <div id="question" class="question-text">4 × 5 = ...</div>
+            </div>
+
+            <!-- Target Area (5 Target Bergerak Lambat) -->
+            <div id="target-area" class="target-area">
+                <!-- Targets will be generated here dynamically -->
+            </div>
+
+            <p class="footer-note">Bidik dan klik angka hasil perkalian yang tepat untuk menghancurkan target!</p>
+        </div>
+
+        <!-- ================= SCREEN 3: RESULT SCREEN ================= -->
+        <div id="screen-result" class="screen">
+            <h1>Misi Tembak Selesai!</h1>
+            <p class="subtitle" style="margin-bottom: 8px;">Selamat, Kamu telah menyelesaikan semua target perkalian 4!</p>
+            <p id="result-greeting" style="font-weight: bold; color: var(--accent-blue); font-size: 1.1rem; text-align: center; margin-bottom: 16px;"></p>
+
+            <div class="report-box">
+                <div class="report-grid">
+                    <div class="report-card">
+                        <span class="report-label">Skor Total</span>
+                        <div id="res-score" class="report-value">0</div>
+                    </div>
+                    <div class="report-card">
+                        <span class="report-label">Waktu Tempuh</span>
+                        <div id="res-time" class="report-value">0s</div>
+                    </div>
+                    <div class="report-card">
+                        <span class="report-label">Akurasi</span>
+                        <div id="res-accuracy" class="report-value">0%</div>
+                    </div>
+                    <div class="report-card">
+                        <span class="report-label">Maks Kombo</span>
+                        <div id="res-combo" class="report-value">×0</div>
+                    </div>
+                </div>
+
+                <div class="review-title">Ulasan Hasil & Pembahasan</div>
+                <div id="review-list" class="review-list">
+                    <!-- List of review items -->
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; width: 100%; max-width: 400px; justify-content: center;">
+                <button class="btn" style="flex: 1; margin-top: 0; background: linear-gradient(135deg, var(--accent-blue) 0%, #00838f 100%);" onclick="restartToWelcome()">Menu Utama</button>
+                <button class="btn" style="flex: 1; margin-top: 0;" onclick="startGame()">Main Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ================= GAME STATE & CONFIGURATION ================= */
+        // PERUBAHAN UTAMA: Database soal kini dibatasi hanya dari 4 x 1 hingga 4 x 10 saja (Total 10 soal).
+        const questionsDatabase = [
+            { id: 1, multiplier: 1, q: "4 × 1", a: 4, desc: "Satu kali empat sama dengan empat. (4 = 4)" },
+            { id: 2, multiplier: 2, q: "4 × 2", a: 8, desc: "Dua kali empat adalah empat ditambah empat. (4 + 4 = 8)" },
+            { id: 3, multiplier: 3, q: "4 × 3", a: 12, desc: "Tiga kali empat adalah empat yang ditambahkan sebanyak 3 kali. (4 + 4 + 4 = 12)" },
+            { id: 4, multiplier: 4, q: "4 × 4", a: 16, desc: "Empat kali empat adalah empat ditambahkan sebanyak 4 kali. (4 + 4 + 4 + 4 = 16)" },
+            { id: 5, multiplier: 5, q: "4 × 5", a: 20, desc: "Lima kali empat menghasilkan angka dua puluh. (5 × 4 = 20)" },
+            { id: 6, multiplier: 6, q: "4 × 6", a: 24, desc: "Enam kali empat menghasilkan dua puluh empat. (6 × 4 = 24)" },
+            { id: 7, multiplier: 7, q: "4 × 7", a: 28, desc: "Tujuh kali empat sama dengan dua puluh delapan. (7 × 4 = 28)" },
+            { id: 8, multiplier: 8, q: "4 × 8", a: 32, desc: "Delapan kali empat sama dengan tiga puluh dua. (8 × 4 = 32)" },
+            { id: 9, multiplier: 9, q: "4 × 9", a: 36, desc: "Sembilan kali empat adalah tiga puluh enam. (9 × 4 = 36)" },
+            { id: 10, multiplier: 10, q: "4 × 10", a: 40, desc: "Sepuluh kali empat adalah empat puluh. (10 × 4 = 40)" }
+        ];
+
+        let studentInfo = { name: "", class: "", number: "" };
+        let activeQuestionsList = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let comboCount = 0;
+        let maxCombo = 0;
+        let correctAnswersCount = 0;
+        let wrongAnswersCount = 0;
+        
+        let timerInterval = null;
+        let totalTimeElapsed = 0;
+        let canAnswer = false;
+        
+        let answersLog = [];
+
+        const targetColors = ["#00bcd4", "#e91e63", "#ffb300", "#4caf50", "#ff5722"];
+        // Daftar kelas gerakan dinamis yang didukung di CSS
+        const movementClasses = [
+            "move-horizontal-1", 
+            "move-vertical-1", 
+            "move-horizontal-2", 
+            "move-vertical-2", 
+            "move-diagonal"
+        ];
+
+        /* ================= NAVIGATION & LIFECYCLE ================= */
+        window.onload = function() {
+            showScreen("screen-welcome");
+            window.addEventListener('resize', resizeCanvas);
+        };
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        /* ================= GAME ACTION METHODS ================= */
+        function startGame() {
+            const nameInput = document.getElementById("student-name").value.trim();
+            const classInput = document.getElementById("student-class").value.trim();
+            const numberInput = document.getElementById("student-number").value.trim();
+
+            studentInfo.name = nameInput || "Siswa Cerdas AHE";
+            studentInfo.class = classInput || "3 SD";
+            studentInfo.number = numberInput || "01";
+
+            document.getElementById("hud-name").innerText = `${studentInfo.name} (${studentInfo.class})`;
+
+            score = 0;
+            comboCount = 0;
+            maxCombo = 0;
+            correctAnswersCount = 0;
+            wrongAnswersCount = 0;
+            totalTimeElapsed = 0;
+            currentQuestionIndex = 0;
+            answersLog = [];
+
+            document.getElementById("hud-score").innerText = "0";
+            document.getElementById("hud-timer").innerText = "00s";
+            document.getElementById("combo-badge").style.display = "none";
+            document.getElementById("game-progress").style.width = "0%";
+
+            // Ambil duplikat database soal (maksimal pengali 10)
+            activeQuestionsList = JSON.parse(JSON.stringify(questionsDatabase));
+            
+            // Menggunakan shuffleArray untuk mengacak urutan soal secara acak
+            shuffleArray(activeQuestionsList);
+
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                totalTimeElapsed++;
+                document.getElementById("hud-timer").innerText = `${totalTimeElapsed}s`;
+            }, 1000);
+
+            showScreen("screen-game");
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= activeQuestionsList.length) {
+                endGame();
+                return;
+            }
+
+            canAnswer = true;
+            const currentQ = activeQuestionsList[currentQuestionIndex];
+            
+            document.getElementById("question").innerHTML = `${currentQ.q} = <span style="color: var(--accent-gold);">?</span>`;
+
+            const progressPercent = (currentQuestionIndex / activeQuestionsList.length) * 100;
+            document.getElementById("game-progress").style.width = `${progressPercent}%`;
+
+            const options = new Set();
+            options.add(currentQ.a);
+
+            // Membuat distraktor cerdas dari pengali 1 hingga 10 saja
+            while (options.size < 5) {
+                let randomOffset = (Math.floor(Math.random() * 5) - 2);
+                let distractorMultiplier = currentQ.multiplier + randomOffset;
+                
+                if (distractorMultiplier <= 0) distractorMultiplier = currentQ.multiplier + 3;
+                if (distractorMultiplier > 10) distractorMultiplier = currentQ.multiplier - 3;
+                if (distractorMultiplier === currentQ.multiplier) {
+                    distractorMultiplier = (distractorMultiplier % 10) + 1;
+                }
+
+                let distractor = 4 * distractorMultiplier;
+                
+                if (Math.random() > 0.5) {
+                    distractor += (Math.random() > 0.5 ? 2 : -2);
+                }
+
+                if (distractor > 0 && distractor !== currentQ.a) {
+                    options.add(distractor);
+                }
+            }
+
+            const optionsArray = Array.from(options);
+            shuffleArray(optionsArray);
+
+            const targetArea = document.getElementById("target-area");
+            targetArea.innerHTML = "";
+
+            optionsArray.forEach((num, index) => {
+                const color = targetColors[index % targetColors.length];
+                
+                // Menentukan pola gerakan secara acak/berurutan agar seimbang
+                const moveClass = movementClasses[index % movementClasses.length];
+                
+                const targetBtn = document.createElement("button");
+                // Menambahkan kelas dasar 'target' dan kelas gerakan animasi
+                targetBtn.className = `target ${moveClass}`;
+                targetBtn.innerHTML = `
+                    <svg class="target-svg" viewBox="0 0 100 100">
+                        <!-- Target Base Outer -->
+                        <circle cx="50" cy="50" r="45" fill="${color}" stroke="#ffffff" stroke-width="3" />
+                        <!-- Outer Rim -->
+                        <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="4" stroke-dasharray="8,4" />
+                        <!-- Middle ring -->
+                        <circle cx="50" cy="50" r="25" fill="#ffffff" opacity="0.9" />
+                        <!-- Inner red bullseye -->
+                        <circle cx="50" cy="50" r="14" fill="#d81b60" />
+                        <circle cx="50" cy="50" r="6" fill="#ffb300" />
+                    </svg>
+                    <span class="target-number">${num}</span>
+                `;
+                targetBtn.onclick = () => handleTargetShoot(targetBtn, num, currentQ.a, currentQ);
+                targetArea.appendChild(targetBtn);
+            });
+        }
+
+        function handleTargetShoot(element, selectedAnswer, correctAnswer, questionData) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            // Bersihkan sisa animasi gerakan agar transisi hancur/goyang terlihat mulus
+            element.className = "target"; 
+
+            if (selectedAnswer === correctAnswer) {
+                correctAnswersCount++;
+                comboCount++;
+                if (comboCount > maxCombo) maxCombo = comboCount;
+
+                const basePoints = 100;
+                const comboBonus = (comboCount - 1) * 20;
+                const totalEarnedPoints = basePoints + comboBonus;
+                score += totalEarnedPoints;
+
+                document.getElementById("hud-score").innerText = score;
+
+                const comboBadge = document.getElementById("combo-badge");
+                if (comboCount >= 2) {
+                    comboBadge.innerText = `Combo ×${comboCount}!`;
+                    comboBadge.style.display = "block";
+                } else {
+                    comboBadge.style.display = "none";
+                }
+
+                answersLog.push({
+                    q: questionData.q,
+                    a: correctAnswer,
+                    userAns: selectedAnswer,
+                    isCorrect: true,
+                    desc: questionData.desc
+                });
+
+                element.classList.add("shatter");
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 400);
+
+            } else {
+                wrongAnswersCount++;
+                comboCount = 0;
+
+                document.getElementById("combo-badge").style.display = "none";
+
+                answersLog.push({
+                    q: questionData.q,
+                    a: correctAnswer,
+                    userAns: selectedAnswer,
+                    isCorrect: false,
+                    desc: questionData.desc
+                });
+
+                element.classList.add("shake");
+
+                setTimeout(() => {
+                    element.classList.remove("shake");
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 400);
+            }
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            showScreen("screen-result");
+
+            document.getElementById("game-progress").style.width = "100%";
+
+            document.getElementById("res-score").innerText = score;
+            document.getElementById("res-time").innerText = `${totalTimeElapsed}s`;
+            
+            const totalQuestions = activeQuestionsList.length;
+            const accuracy = Math.round((correctAnswersCount / totalQuestions) * 100);
+            document.getElementById("res-accuracy").innerText = `${accuracy}%`;
+            document.getElementById("res-combo").innerText = `×${maxCombo}`;
+
+            const greetEl = document.getElementById("result-greeting");
+            if (accuracy === 100) {
+                greetEl.innerText = `Luar biasa, ${studentInfo.name}! Akurasi Sempurna 100%! Kamu Juara Perkalian 4! 🎉`;
+                startConfetti();
+            } else if (accuracy >= 80) {
+                greetEl.innerText = `Hebat sekali, ${studentInfo.name}! Sedikit lagi mendapat skor sempurna. Pertahankan! 👍`;
+                startConfetti();
+            } else if (accuracy >= 50) {
+                greetEl.innerText = `Kerja bagus, ${studentInfo.name}! Ayo coba lagi agar mendapat nilai yang lebih tinggi.`;
+            } else {
+                greetEl.innerText = `Mari terus berlatih, ${studentInfo.name}! Belajar menyenangkan bersama Bimbel AHE.`;
+            }
+
+            const reviewListContainer = document.getElementById("review-list");
+            reviewListContainer.innerHTML = "";
+
+            answersLog.forEach(log => {
+                const item = document.createElement("div");
+                item.className = "review-item";
+
+                const isCorrectStr = log.isCorrect 
+                    ? `<span class="review-correct">Benar ✔</span>` 
+                    : `<span class="review-wrong">Salah ✖ (Jawab: ${log.userAns})</span>`;
+
+                item.innerHTML = `
+                    <div style="flex-grow: 1;">
+                        <span class="review-q">${log.q} = ${log.a}</span>
+                        <span class="review-desc" style="display:block; margin-top:2px;">${log.desc}</span>
+                    </div>
+                    <div style="text-align: right; min-width: 100px;">${isCorrectStr}</div>
+                `;
+                reviewListContainer.appendChild(item);
+            });
+        }
+
+        function restartToWelcome() {
+            stopConfetti();
+            showScreen("screen-welcome");
+        }
+
+        /* ================= UTILITY FUNCTIONS ================= */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        /* ================= DECORATIVE CONFETTI SYSTEMS ================= */
+        let confettiActive = false;
+        let confettiAnimationId = null;
+        const canvas = document.getElementById("confetti-canvas");
+        const ctx = canvas.getContext("2d");
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        class ConfettiParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 8 + 4;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.speedY = Math.random() * 3 + 2;
+                this.speedX = Math.random() * 2 - 1;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 4 - 2;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+                if (this.y > canvas.height) {
+                    this.y = -20;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function startConfetti() {
+            resizeCanvas();
+            confettiActive = true;
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push(new ConfettiParticle());
+            }
+            animateConfetti();
+        }
+
+        function stopConfetti() {
+            confettiActive = false;
+            if (confettiAnimationId) {
+                cancelAnimationFrame(confettiAnimationId);
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function animateConfetti() {
+            if (!confettiActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            confettiAnimationId = requestAnimationFrame(animateConfetti);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHE Smart Game - Whack a Mole Perkalian 9</title>
+    <style>
+        /* CSS Root & Theme - Sesuai Identitas Bimbel AHE Pilar Ilmu */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #5c0f75 0%, #a11462 50%, #d61c59 100%);
+            --primary-color: #a11462;
+            --secondary-color: #5c0f75;
+            --accent-color: #f39c12; /* Gold/Orange */
+            --light-color: #fbf6fa;
+            --dark-color: #2c0b30;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --card-shadow: 0 8px 20px rgba(92, 15, 117, 0.15);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: #eef5e9; /* Nuansa rumput hijau ceria */
+            color: var(--dark-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        .btn {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(161, 20, 98, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(161, 20, 98, 0.6);
+            filter: brightness(1.1);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .btn-accent:hover {
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+        }
+
+        /* Header Brand AHE */
+        header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            border-bottom: 4px solid var(--accent-color);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-svg {
+            width: 70px;
+            height: 70px;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+        }
+
+        .brand-text h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .brand-text p {
+            font-size: 0.8rem;
+            color: #ffda79;
+            font-weight: 600;
+        }
+
+        .tagline {
+            font-style: italic;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 15px;
+            border-radius: 20px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Screen Wrapper */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out forwards;
+            flex: 1;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 1. Welcome Screen */
+        #welcome-screen {
+            justify-content: center;
+            align-items: center;
+            padding: 30px 15px;
+        }
+
+        .card-welcome {
+            background: white;
+            border-radius: 24px;
+            padding: 35px;
+            width: 100%;
+            max-width: 580px;
+            box-shadow: var(--card-shadow);
+            border: 2px solid rgba(161, 20, 98, 0.1);
+            text-align: center;
+        }
+
+        .welcome-logo {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 20px;
+        }
+
+        .card-welcome h2 {
+            color: var(--secondary-color);
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+        }
+
+        .card-welcome h3 {
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(161, 20, 98, 0.2);
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .flex-row .form-group {
+            flex: 1;
+        }
+
+        .instruction-box {
+            background: #fff9e6;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 0 12px 12px 0;
+            text-align: left;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .instruction-box h4 {
+            color: #d35400;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        /* 2. Game Screen */
+        .game-info-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            flex-wrap: wrap;
+            gap: 15px;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .student-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .profile-details p {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .profile-details h4 {
+            font-size: 0.95rem;
+            color: var(--secondary-color);
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stat-badge {
+            background: #f1ecf3;
+            color: var(--secondary-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(92, 15, 117, 0.1);
+        }
+
+        .stat-badge.timer-active {
+            background: #fff0f0;
+            color: var(--danger-color);
+            border-color: rgba(231, 76, 60, 0.2);
+            animation: pulse-danger 1s infinite;
+        }
+
+        @keyframes pulse-danger {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Question Banner Area */
+        .question-banner {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            border-left: 6px solid var(--accent-color);
+            border-right: 6px solid var(--primary-color);
+        }
+
+        .question-banner h3 {
+            font-size: 1rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .question-display {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--secondary-color);
+            letter-spacing: 2px;
+        }
+
+        /* Whack-a-Mole Field Grid */
+        .whack-field {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            background: #73a942; /* Lapangan Rumput Hijau */
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: inset 0 8px 15px rgba(0,0,0,0.2), 0 10px 20px rgba(115, 169, 66, 0.3);
+            border: 4px solid #538d22;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* Palu Mainan kursor */
+        .whack-field {
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><path d='M10 24l14-14 10 10-14 14z' fill='%23a11462'/><rect x='18' y='22' width='18' height='8' transform='rotate(45 18 22)' fill='%23f39c12'/><rect x='4' y='32' width='16' height='4' transform='rotate(45 4 32)' fill='%238e44ad'/></svg>") 24 24, auto;
+        }
+
+        .whack-field:active {
+            cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'><path d='M10 24l14-14 10 10-14 14z' fill='%23a11462'/><rect x='18' y='22' width='18' height='8' transform='rotate(60 18 22)' fill='%23e74c3c'/><rect x='4' y='32' width='16' height='4' transform='rotate(60 4 32)' fill='%238e44ad'/></svg>") 24 24, auto;
+        }
+
+        .hole {
+            aspect-ratio: 1;
+            background: #4a3319; /* Bayangan lubang */
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.6), 0 4px 6px rgba(255,255,255,0.2);
+            border-bottom: 6px solid #8c6239;
+        }
+
+        /* Penghalang rumput di depan lubang */
+        .hole::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 25%;
+            background: #538d22;
+            z-index: 10;
+            border-radius: 0 0 50% 50%;
+            pointer-events: none;
+        }
+
+        /* Mole Container */
+        .mole {
+            width: 85%;
+            height: 85%;
+            position: absolute;
+            bottom: -100%; /* Sembunyi secara default */
+            left: 7.5%;
+            transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .mole.up {
+            bottom: 12%; /* Muncul */
+        }
+
+        /* Beautiful SVG Mole Drawing */
+        .mole-svg {
+            width: 90%;
+            height: 75%;
+            filter: drop-shadow(0 4px 5px rgba(0,0,0,0.3));
+        }
+
+        /* Papan nilai angka jawaban */
+        .answer-board {
+            background: #fff;
+            color: var(--primary-color);
+            border: 3px solid var(--accent-color);
+            font-size: 1.4rem;
+            font-weight: 900;
+            padding: 4px 14px;
+            border-radius: 12px;
+            position: absolute;
+            top: -5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            transform: rotate(-3deg);
+            z-index: 11;
+            min-width: 60px;
+            text-align: center;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Mole body segments */
+        .mole-body {
+            fill: #9b7051;
+        }
+        .mole-belly {
+            fill: #dfb291;
+        }
+        .mole-nose {
+            fill: #e05454;
+        }
+        .mole-eye {
+            fill: #2c0b30;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            background: #e2d5e5;
+            height: 10px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: var(--primary-gradient);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 10px;
+        }
+
+        /* Floating Feedback Overlay (Bagus untuk Umpan Balik Cepat Kelas 2 SD) */
+        .feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            border-radius: 24px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .feedback-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .feedback-card.correct-style {
+            border-color: var(--success-color);
+        }
+
+        .feedback-card.incorrect-style {
+            border-color: var(--danger-color);
+        }
+
+        .feedback-title-text {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .feedback-card.correct-style .feedback-title-text {
+            color: var(--success-color);
+        }
+
+        .feedback-card.incorrect-style .feedback-title-text {
+            color: var(--danger-color);
+        }
+
+        .feedback-formula {
+            background: var(--light-color);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            border: 2px dashed var(--primary-color);
+        }
+
+        .feedback-desc {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        /* 3. Result Screen */
+        #result-screen {
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .card-result {
+            background: white;
+            border-radius: 28px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--card-shadow);
+            border: 3px solid var(--primary-color);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .result-badge {
+            width: 90px;
+            height: 90px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+        }
+
+        .result-badge svg {
+            width: 45px;
+            height: 45px;
+            fill: white;
+        }
+
+        .score-huge {
+            font-size: 3.8rem;
+            font-weight: 900;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+        }
+
+        .student-summary {
+            background: #f8f5f9;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #e2d5e5;
+            text-align: left;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+            border-top: 1px dashed #ddd;
+            padding-top: 15px;
+        }
+
+        .summary-item h5 {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-bottom: 3px;
+        }
+
+        .summary-item p {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .evaluation-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            line-height: 1.5;
+            padding: 0 10px;
+        }
+
+        /* Canvas Confetti */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Footer */
+        footer {
+            background: #2c0b30;
+            color: #a291a5;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+            margin-top: auto;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .whack-field {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                padding: 15px;
+            }
+            .question-display {
+                font-size: 2rem;
+            }
+            .welcome-logo {
+                width: 90px;
+                height: 90px;
+            }
+            .card-welcome {
+                padding: 25px 15px;
+            }
+            .answer-board {
+                font-size: 1rem;
+                min-width: 45px;
+                padding: 2px 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .whack-field {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            .flex-row {
+                flex-direction: column;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header AHE -->
+    <header>
+        <div class="header-content">
+            <div class="brand-section">
+                <!-- SVG Logo AHE Pilar Ilmu -->
+                <svg class="logo-svg" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#5c0f75" />
+                            <stop offset="50%" stop-color="#a11462" />
+                            <stop offset="100%" stop-color="#d61c59" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="48" fill="url(#logo-grad)" stroke="#ffffff" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="#f39c12" stroke-width="1.5"/>
+                    <ellipse cx="50" cy="35" rx="35" ry="18" fill="#f39c12" />
+                    <ellipse cx="50" cy="35" rx="33" ry="16" fill="url(#logo-grad)" />
+                    <text x="50" y="41" font-family="'Arial Black', sans-serif" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle">Ahe</text>
+                    <path d="M 30 78 L 70 78 Q 70 75 65 75 L 35 75 Q 30 75 30 78 Z" fill="#ffffff" />
+                    <rect x="38" y="58" width="5" height="17" fill="#ffffff" rx="1"/>
+                    <rect x="47" y="58" width="6" height="17" fill="#ffffff" rx="1"/>
+                    <rect x="57" y="58" width="5" height="17" fill="#ffffff" rx="1"/>
+                    <rect x="34" y="55" width="32" height="3" fill="#ffffff" rx="1"/>
+                    <path d="M 50 53 Q 45 47 32 49 L 32 54 Q 45 52 50 55 Q 55 52 68 54 L 68 49 Q 55 47 50 53 Z" fill="#ffffff" stroke="#f39c12" stroke-width="0.5"/>
+                    <rect x="18" y="81" width="64" height="6" fill="#2c0b30" rx="3" />
+                    <text x="50" y="85.5" font-family="sans-serif" font-size="3" font-weight="bold" fill="#ffffff" text-anchor="middle">PILAR ILMU</text>
+                </svg>
+                <div class="brand-text">
+                    <h1>AHE Smart Game</h1>
+                    <p>Bimbel AHE Pilar Ilmu</p>
+                </div>
+            </div>
+            <div class="tagline">
+                Belajar Menyenangkan, Potensi Tak Terbatas.
+            </div>
+        </div>
+    </header>
+
+    <!-- 1. Welcome Screen -->
+    <div id="welcome-screen" class="screen active">
+        <div class="card-welcome">
+            <div class="welcome-logo">
+                <svg viewBox="0 0 100 100" style="width:100%; height:100%;">
+                    <circle cx="50" cy="50" r="48" fill="url(#logo-grad)" stroke="#ffffff" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="#f39c12" stroke-width="1.5"/>
+                    <ellipse cx="50" cy="35" rx="35" ry="18" fill="#f39c12" />
+                    <ellipse cx="50" cy="35" rx="33" ry="16" fill="url(#logo-grad)" />
+                    <text x="50" y="41" font-family="'Arial Black', sans-serif" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle">Ahe</text>
+                    <path d="M 30 78 L 70 78 Q 70 75 65 75 L 35 75 Q 30 75 30 78 Z" fill="#ffffff" />
+                    <rect x="38" y="58" width="5" height="17" fill="#ffffff" rx="1"/>
+                    <rect x="47" y="58" width="6" height="17" fill="#ffffff" rx="1"/>
+                    <rect x="57" y="58" width="5" height="17" fill="#ffffff" rx="1"/>
+                    <rect x="34" y="55" width="32" height="3" fill="#ffffff" rx="1"/>
+                    <path d="M 50 53 Q 45 47 32 49 L 32 54 Q 45 52 50 55 Q 55 52 68 54 L 68 49 Q 55 47 50 53 Z" fill="#ffffff" stroke="#f39c12" stroke-width="0.5"/>
+                    <rect x="18" y="81" width="64" height="6" fill="#2c0b30" rx="3" />
+                    <text x="50" y="85.5" font-family="sans-serif" font-size="3" font-weight="bold" fill="#ffffff" text-anchor="middle">PILAR ILMU</text>
+                </svg>
+            </div>
+            <h2>Pukul Tikus Tanah Matematika</h2>
+            <h3>Materi: Perkalian 9 (Kelas 2 SD)</h3>
+
+            <div class="instruction-box">
+                <h4>Aturan Bermain Ceria:</h4>
+                <p>1. Masukkan nama, kelas, dan nomor absenmu di bawah.</p>
+                <p>2. Perhatikan soal perkalian 9 yang ada di kotak atas.</p>
+                <p>3. Pukul tikus tanah yang membawa angka jawaban benar.</p>
+                <p>4. Waktu bermainmu adalah **60 detik**. Kumpulkan poin sebanyak-banyaknya!</p>
+            </div>
+
+            <form id="start-form" onsubmit="handleStartGame(event)">
+                <div class="form-group">
+                    <label for="student-name">Nama Lengkap Siswa</label>
+                    <input type="text" id="student-name" placeholder="Masukkan nama lengkapmu..." required>
+                </div>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label for="student-class">Kelas</label>
+                        <input type="text" id="student-class" value="2" placeholder="Contoh: 2" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="student-absent">Nomor Absen</label>
+                        <input type="number" id="student-absent" placeholder="Contoh: 7" min="1" max="100" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-accent" style="width:100%; margin-top:10px;">
+                    Mulai Main & Belajar!
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="container" style="position: relative;">
+            <!-- Game Info Bar -->
+            <div class="game-info-bar">
+                <div class="student-profile">
+                    <div class="avatar" id="avatar-initial">?</div>
+                    <div class="profile-details">
+                        <h4 id="display-name">Nama Siswa</h4>
+                        <p id="display-class-absent">Kelas -- | Absen --</p>
+                    </div>
+                </div>
+                <div class="stats-container">
+                    <div class="stat-badge">
+                        <span>Skor:</span>
+                        <strong id="display-score">0</strong>
+                    </div>
+                    <div class="stat-badge" id="timer-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <strong id="display-timer">60</strong>s
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>Kemajuan Bermain</span>
+                    <span id="progress-text">Soal ke-1</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Question Display Banner -->
+            <div class="question-banner">
+                <h3>Berapakah Hasil Dari:</h3>
+                <div class="question-display" id="question-text">9 &times; 1 = ?</div>
+            </div>
+
+            <!-- Whack field (Grid of 6 Holes) -->
+            <div class="whack-field" id="whack-field-container">
+                <!-- Floating feedback overlay (Umpan Balik Instan) -->
+                <div class="feedback-overlay" id="instant-feedback">
+                    <div class="feedback-card" id="feedback-card-element">
+                        <div class="feedback-title-text" id="feedback-title">Hebat! Benar!</div>
+                        <div class="feedback-formula" id="feedback-formula-equation">9 &times; 3 = 27</div>
+                        <div class="feedback-desc" id="feedback-description">Hebat sekali! Teruskan mengumpulkan skor tinggi!</div>
+                    </div>
+                </div>
+
+                <div class="hole" data-hole="0">
+                    <div class="mole">
+                        <div class="answer-board">0</div>
+                        <svg class="mole-svg" viewBox="0 0 100 100">
+                            <ellipse cx="25" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="75" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="50" cy="55" rx="35" ry="32" class="mole-body"/>
+                            <ellipse cx="50" cy="65" rx="25" ry="20" class="mole-belly"/>
+                            <circle cx="38" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="62" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="40" cy="43" r="1.5" fill="white"/>
+                            <circle cx="64" cy="43" r="1.5" fill="white"/>
+                            <ellipse cx="50" cy="52" rx="7" ry="5" class="mole-nose"/>
+                            <rect x="46" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <rect x="50" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <circle cx="28" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                            <circle cx="72" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="hole" data-hole="1">
+                    <div class="mole">
+                        <div class="answer-board">0</div>
+                        <svg class="mole-svg" viewBox="0 0 100 100">
+                            <ellipse cx="25" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="75" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="50" cy="55" rx="35" ry="32" class="mole-body"/>
+                            <ellipse cx="50" cy="65" rx="25" ry="20" class="mole-belly"/>
+                            <circle cx="38" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="62" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="40" cy="43" r="1.5" fill="white"/>
+                            <circle cx="64" cy="43" r="1.5" fill="white"/>
+                            <ellipse cx="50" cy="52" rx="7" ry="5" class="mole-nose"/>
+                            <rect x="46" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <rect x="50" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <circle cx="28" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                            <circle cx="72" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="hole" data-hole="2">
+                    <div class="mole">
+                        <div class="answer-board">0</div>
+                        <svg class="mole-svg" viewBox="0 0 100 100">
+                            <ellipse cx="25" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="75" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="50" cy="55" rx="35" ry="32" class="mole-body"/>
+                            <ellipse cx="50" cy="65" rx="25" ry="20" class="mole-belly"/>
+                            <circle cx="38" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="62" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="40" cy="43" r="1.5" fill="white"/>
+                            <circle cx="64" cy="43" r="1.5" fill="white"/>
+                            <ellipse cx="50" cy="52" rx="7" ry="5" class="mole-nose"/>
+                            <rect x="46" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <rect x="50" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <circle cx="28" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                            <circle cx="72" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="hole" data-hole="3">
+                    <div class="mole">
+                        <div class="answer-board">0</div>
+                        <svg class="mole-svg" viewBox="0 0 100 100">
+                            <ellipse cx="25" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="75" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="50" cy="55" rx="35" ry="32" class="mole-body"/>
+                            <ellipse cx="50" cy="65" rx="25" ry="20" class="mole-belly"/>
+                            <circle cx="38" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="62" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="40" cy="43" r="1.5" fill="white"/>
+                            <circle cx="64" cy="43" r="1.5" fill="white"/>
+                            <ellipse cx="50" cy="52" rx="7" ry="5" class="mole-nose"/>
+                            <rect x="46" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <rect x="50" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <circle cx="28" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                            <circle cx="72" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="hole" data-hole="4">
+                    <div class="mole">
+                        <div class="answer-board">0</div>
+                        <svg class="mole-svg" viewBox="0 0 100 100">
+                            <ellipse cx="25" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="75" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="50" cy="55" rx="35" ry="32" class="mole-body"/>
+                            <ellipse cx="50" cy="65" rx="25" ry="20" class="mole-belly"/>
+                            <circle cx="38" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="62" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="40" cy="43" r="1.5" fill="white"/>
+                            <circle cx="64" cy="43" r="1.5" fill="white"/>
+                            <ellipse cx="50" cy="52" rx="7" ry="5" class="mole-nose"/>
+                            <rect x="46" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <rect x="50" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <circle cx="28" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                            <circle cx="72" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="hole" data-hole="5">
+                    <div class="mole">
+                        <div class="answer-board">0</div>
+                        <svg class="mole-svg" viewBox="0 0 100 100">
+                            <ellipse cx="25" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="75" cy="40" rx="10" ry="12" fill="#7d563a"/>
+                            <ellipse cx="50" cy="55" rx="35" ry="32" class="mole-body"/>
+                            <ellipse cx="50" cy="65" rx="25" ry="20" class="mole-belly"/>
+                            <circle cx="38" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="62" cy="45" r="5" class="mole-eye"/>
+                            <circle cx="40" cy="43" r="1.5" fill="white"/>
+                            <circle cx="64" cy="43" r="1.5" fill="white"/>
+                            <ellipse cx="50" cy="52" rx="7" ry="5" class="mole-nose"/>
+                            <rect x="46" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <rect x="50" y="58" width="4" height="5" fill="white" rx="1"/>
+                            <circle cx="28" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                            <circle cx="72" cy="52" r="4" fill="#fca5a5" opacity="0.6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" onclick="triggerImmediateFinish()" style="background:#7f8c8d; box-shadow:none;">
+                    Selesai & Lihat Hasil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Result Screen -->
+    <div id="result-screen" class="screen">
+        <canvas id="confetti-canvas"></canvas>
+        <div class="card-result">
+            <div class="result-badge">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+            </div>
+            <h2>Laporan Hasil Belajar Matematika</h2>
+            <p style="color:var(--secondary-color); font-weight:600; margin-top:5px;">AHE Smart Game - Bimbel AHE Pilar Ilmu</p>
+            
+            <div class="score-huge" id="final-score">0</div>
+            <div class="score-label">Skor Akhir Siswa</div>
+
+            <p class="evaluation-text" id="final-evaluation-message">
+                Hebat! Potensimu sungguh luar biasa, mari asah terus di Bimbel AHE.
+            </p>
+
+            <div class="student-summary">
+                <h3 style="color: var(--primary-color); border-bottom: 2px solid rgba(161,20,98,0.1); padding-bottom: 8px;">Detail Prestasi</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <h5>Nama Siswa</h5>
+                        <p id="summary-name">Siswa</p>
+                    </div>
+                    <div class="summary-item">
+                        <h5>Kelas / No. Absen</h5>
+                        <p id="summary-class-absent">Kelas / Absen</p>
+                    </div>
+                    <div class="summary-item">
+                        <h5>Pukulan Benar</h5>
+                        <p id="summary-correct" style="color:var(--success-color);">0 Kali</p>
+                    </div>
+                    <div class="summary-item">
+                        <h5>Pukulan Meleset (Salah)</h5>
+                        <p id="summary-wrong" style="color:var(--danger-color);">0 Kali</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <button class="btn btn-accent" onclick="restartGame()">
+                    Main Lagi! (Atur Ulang)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Bimbel AHE Pilar Ilmu. Tagline: Belajar Menyenangkan, Potensi Tak Terbatas.</p>
+        <p style="font-size:0.75rem; margin-top:5px; opacity:0.75;">Dioptimalkan untuk anak kelas 2 SD. Cepat, interaktif, tanpa tombol lanjut untuk kelancaran bermain.</p>
+    </footer>
+
+    <!-- Game Logic Script -->
+    <script>
+        // Data Soal & Trik Perkalian 9 (10 Soal Dasar)
+        const mathQuestions = [
+            {
+                multiplier: 1,
+                correct: 9,
+                explanation: "9 dikali 1 hasilnya tetap 9. Angka berapa saja dikali 1 hasilnya tidak berubah!"
+            },
+            {
+                multiplier: 2,
+                correct: 18,
+                explanation: "Trik Jari: Tekuk jari kedua dari kiri. Sebelah kiri sisa 1, sebelah kanan sisa 8. Jadi 18!"
+            },
+            {
+                multiplier: 3,
+                correct: 27,
+                explanation: "Trik Jari: Tekuk jari ketiga dari kiri. Sebelah kiri sisa 2, sebelah kanan sisa 7. Jadi 27!"
+            },
+            {
+                multiplier: 4,
+                correct: 36,
+                explanation: "Trik Jari: Tekuk jari keempat dari kiri. Sebelah kiri sisa 3, sebelah kanan sisa 6. Jadi 36!"
+            },
+            {
+                multiplier: 5,
+                correct: 45,
+                explanation: "Trik Jari: Tekuk jari kelima dari kiri. Sebelah kiri sisa 4, sebelah kanan sisa 5. Jadi 45!"
+            },
+            {
+                multiplier: 6,
+                correct: 54,
+                explanation: "Trik Jari: Tekuk jari keenam dari kiri. Sebelah kiri sisa 5, sebelah kanan sisa 4. Jadi 54!"
+            },
+            {
+                multiplier: 7,
+                correct: 63,
+                explanation: "Trik Jari: Tekuk jari ketujuh dari kiri. Sebelah kiri sisa 6, sebelah kanan sisa 3. Jadi 63!"
+            },
+            {
+                multiplier: 8,
+                correct: 72,
+                explanation: "Trik Jari: Tekuk jari kedelapan dari kiri. Sebelah kiri sisa 7, sebelah kanan sisa 2. Jadi 72!"
+            },
+            {
+                multiplier: 9,
+                correct: 81,
+                explanation: "Trik Jari: Tekuk jari kesembilan dari kiri. Sebelah kiri sisa 8, sebelah kanan sisa 1. Jadi 81!"
+            },
+            {
+                multiplier: 10,
+                correct: 90,
+                explanation: "Trik Cepat: Cukup tulis angka 9 dan tambahkan angka 0 di belakangnya. Jadi 90!"
+            }
+        ];
+
+        // Game State Management
+        let state = {
+            student: { name: "", class: "", absent: "" },
+            currentQuestionIndex: 0,
+            shuffledQuestions: [],
+            score: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            gameActive: false,
+            timeLeft: 60, // Durasi tetap seluruh permainan
+            timerInterval: null,
+            correctMoleHole: -1,
+            isLocked: false // Mencegah double klik saat transisi otomatis
+        };
+
+        // DOM Elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const instantFeedback = document.getElementById('instant-feedback');
+        const feedbackCard = document.getElementById('feedback-card-element');
+        const moles = document.querySelectorAll('.mole');
+        const holes = document.querySelectorAll('.hole');
+
+        // Web Audio API Synthesizer (100% Offline)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    // Arpeggio ceria naik
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.12); // E5
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.24); // G5
+                    osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.36); // C6
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.55);
+                } else if (type === 'incorrect') {
+                    // Bunyi dengung salah
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(261.63, audioCtx.currentTime); // C4
+                    osc.frequency.setValueAtTime(196.00, audioCtx.currentTime + 0.15); // G3
+                    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.45);
+                } else if (type === 'whack') {
+                    // Efek hantaman palu
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.18);
+                } else if (type === 'fanfare') {
+                    // Musik kemenangan ceria
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+                        g.gain.setValueAtTime(0.1, audioCtx.currentTime + idx * 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.4);
+                        o.start(audioCtx.currentTime + idx * 0.1);
+                        o.stop(audioCtx.currentTime + idx * 0.1 + 0.45);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio terhambat browser.");
+            }
+        }
+
+        // Mulai Game
+        function handleStartGame(event) {
+            event.preventDefault();
+
+            // Ambil data siswa
+            state.student.name = document.getElementById('student-name').value.trim();
+            state.student.class = document.getElementById('student-class').value.trim();
+            state.student.absent = document.getElementById('student-absent').value;
+
+            // Inisialisasi Audio & Efek
+            initAudio();
+            playSound('whack');
+
+            // Tampilkan Profil
+            document.getElementById('display-name').innerText = state.student.name;
+            document.getElementById('display-class-absent').innerText = `Kelas ${state.student.class} | Absen No. ${state.student.absent}`;
+            
+            const initials = state.student.name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+            document.getElementById('avatar-initial').innerText = initials;
+
+            // Transisi Layar
+            welcomeScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+
+            // Acak urutan soal
+            state.shuffledQuestions = [...mathQuestions];
+            shuffleArray(state.shuffledQuestions);
+
+            state.currentQuestionIndex = 0;
+            state.score = 0;
+            state.correctCount = 0;
+            state.wrongCount = 0;
+            state.timeLeft = 60; // 60 Detik untuk seluruh game
+            state.isLocked = false;
+            state.gameActive = true;
+
+            document.getElementById('display-score').innerText = state.score;
+            document.getElementById('display-timer').innerText = state.timeLeft;
+
+            // Jalankan Timer 60 Detik
+            startGlobalTimer();
+
+            // Muat Soal Pertama
+            loadQuestion();
+        }
+
+        // Pengacak Array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Timer Global 60 Detik
+        function startGlobalTimer() {
+            clearInterval(state.timerInterval);
+            const timerBadge = document.getElementById('timer-badge');
+            const timerDisplay = document.getElementById('display-timer');
+
+            state.timerInterval = setInterval(() => {
+                if (!state.gameActive) return;
+
+                state.timeLeft--;
+                timerDisplay.innerText = state.timeLeft;
+
+                // Indikator kritis (sisa 10 detik)
+                if (state.timeLeft <= 10) {
+                    timerBadge.classList.add('timer-active');
+                } else {
+                    timerBadge.classList.remove('timer-active');
+                }
+
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Muat Soal Baru
+        function loadQuestion() {
+            if (!state.gameActive) return;
+
+            // Sembunyikan Umpan Balik Instan
+            instantFeedback.style.display = "none";
+            state.isLocked = false;
+
+            // Jika semua 10 soal habis sebelum 60 detik, acak ulang agar bisa bermain terus
+            if (state.currentQuestionIndex >= state.shuffledQuestions.length) {
+                shuffleArray(state.shuffledQuestions);
+                state.currentQuestionIndex = 0;
+            }
+
+            updateProgressBar();
+
+            const currentQ = state.shuffledQuestions[state.currentQuestionIndex];
+            document.getElementById('question-text').innerHTML = `9 &times; ${currentQ.multiplier} = &dots;`;
+
+            // Siapkan Jawaban (1 Benar, 5 Pengecoh dekat)
+            const correctAnswer = currentQ.correct;
+            const answers = [correctAnswer];
+
+            // Pengecoh khusus ramah anak kelas 2 SD (selisih kecil atau angka kelipatan lain)
+            while (answers.length < 6) {
+                let wrongAns;
+                const r = Math.random();
+                if (r < 0.4) {
+                    // Pengecoh selisih 1 atau 2 angka
+                    const shift = (Math.floor(Math.random() * 2) + 1) * (Math.random() < 0.5 ? 1 : -1);
+                    wrongAns = correctAnswer + shift;
+                } else {
+                    // Pengecoh puluhan yang mirip (misal benar 27, pengecoh 17 atau 37)
+                    const shift = (Math.floor(Math.random() * 2) + 1) * 10 * (Math.random() < 0.5 ? 1 : -1);
+                    wrongAns = correctAnswer + shift;
+                }
+
+                if (wrongAns > 0 && wrongAns <= 100 && !answers.includes(wrongAns)) {
+                    answers.push(wrongAns);
+                }
+            }
+
+            // Acak penempatan posisi jawaban ke dalam 6 lubang
+            shuffleArray(answers);
+
+            // Tampilkan Moles dan Papan Angka
+            holes.forEach((hole, idx) => {
+                const board = hole.querySelector('.answer-board');
+                board.innerText = answers[idx];
+
+                if (answers[idx] === correctAnswer) {
+                    state.correctMoleHole = idx; // Simpan lubang yang benar
+                }
+            });
+
+            // Animasi Moles Pop Up naik
+            moles.forEach(mole => mole.classList.remove('up'));
+            setTimeout(() => {
+                if (state.gameActive && !state.isLocked) {
+                    moles.forEach(mole => mole.classList.add('up'));
+                }
+            }, 100);
+        }
+
+        // Deteksi Pukulan Moles
+        holes.forEach((hole, idx) => {
+            hole.addEventListener('click', () => {
+                // Jangan terima klik jika game nonaktif atau sedang masa jeda transisi
+                if (!state.gameActive || state.isLocked) return;
+
+                state.isLocked = true; // Kunci input sementara
+                playSound('whack');
+
+                const moleElement = hole.querySelector('.mole');
+                moleElement.classList.remove('up'); // Sembunyikan tikus yang dipukul
+
+                const currentQ = state.shuffledQuestions[state.currentQuestionIndex];
+                const formulaStr = `9 &times; ${currentQ.multiplier} = ${currentQ.correct}`;
+
+                // Periksa Jawaban
+                if (idx === state.correctMoleHole) {
+                    // BENAR! +100 poin
+                    state.score += 100;
+                    state.correctCount++;
+                    document.getElementById('display-score').innerText = state.score;
+
+                    playSound('correct');
+                    showInstantFeedback(true, formulaStr, currentQ.explanation);
+                } else {
+                    // SALAH! -50 poin
+                    state.score = Math.max(0, state.score - 50); // Skor tidak minus
+                    state.wrongCount++;
+                    document.getElementById('display-score').innerText = state.score;
+
+                    playSound('incorrect');
+
+                    // Flash merah pada layar permainan
+                    const field = document.getElementById('whack-field-container');
+                    field.style.background = '#e74c3c';
+                    setTimeout(() => {
+                        field.style.background = '#73a942';
+                    }, 250);
+
+                    showInstantFeedback(false, formulaStr, currentQ.explanation);
+                }
+            });
+        });
+
+        // Tampilkan Umbal Balik Cepat & Rumus (Pembahasan Ringkas)
+        function showInstantFeedback(isCorrect, formulaText, explanationText) {
+            // Pasang gaya warna
+            if (isCorrect) {
+                feedbackCard.className = "feedback-card correct-style";
+                document.getElementById('feedback-title').innerText = "Hebat! Benar! 🎉";
+                document.getElementById('feedback-description').innerText = "Hebat sekali! Kamu berhak mendapatkan +100 Poin.";
+            } else {
+                feedbackCard.className = "feedback-card incorrect-style";
+                document.getElementById('feedback-title').innerText = "Kurang Tepat! 🌟";
+                document.getElementById('feedback-description').innerText = "Sayang sekali, skormu dikurangi -50 Poin. Ayo pelajari rumusnya!";
+            }
+
+            document.getElementById('feedback-formula-equation').innerHTML = formulaText;
+            
+            // Tampilkan pembahasannya
+            instantFeedback.style.display = "flex";
+
+            // Sembunyikan semua tikus lainnya saat feedback tampil
+            moles.forEach(mole => mole.classList.remove('up'));
+
+            // Otomatis pindah ke soal berikutnya setelah 1,2 detik (Tanpa tombol Lanjut!)
+            setTimeout(() => {
+                state.currentQuestionIndex++;
+                loadQuestion();
+            }, 1250);
+        }
+
+        // Update progress bar indikator
+        function updateProgressBar() {
+            // Menggunakan representasi visual langkah
+            const stepsPlayed = state.correctCount + state.wrongCount;
+            document.getElementById('progress-text').innerText = `Telah Menjawab: ${stepsPlayed} Soal`;
+            
+            // Limitasi bar agar tetap meluncur menarik
+            const fillWidth = Math.min(100, (stepsPlayed % 10) * 10);
+            document.getElementById('progress-fill').style.width = `${fillWidth}%`;
+        }
+
+        // Selesaikan paksa (Tombol menyerah/selesai)
+        function triggerImmediateFinish() {
+            if (confirm("Apakah kamu yakin ingin menyelesaikan petualangan belajarmu sekarang?")) {
+                endGame();
+            }
+        }
+
+        // Selesai Permainan (Waktu Habis)
+        function endGame() {
+            state.gameActive = false;
+            clearInterval(state.timerInterval);
+
+            // Sembunyikan semua Moles & Feedback
+            moles.forEach(mole => mole.classList.remove('up'));
+            instantFeedback.style.display = "none";
+
+            // Transisi Layar
+            gameScreen.classList.remove('active');
+            resultScreen.classList.add('active');
+
+            // Kalkulasi Hasil Belajar
+            document.getElementById('final-score').innerText = state.score;
+            document.getElementById('summary-name').innerText = state.student.name;
+            document.getElementById('summary-class-absent').innerText = `Kelas ${state.student.class} / Absen No. ${state.student.absent}`;
+            document.getElementById('summary-correct').innerText = `${state.correctCount} Kali`;
+            document.getElementById('summary-wrong').innerText = `${state.wrongCount} Kali`;
+
+            // Kalimat Evaluasi Personal Anak Kelas 2 SD
+            const evalMsg = document.getElementById('final-evaluation-message');
+            if (state.score >= 1000) {
+                evalMsg.innerHTML = "Luar Biasa Sempurna! Kamu adalah **Bintang Perkalian 9**! Pertahankan prestasi hebatmu bersama Bimbel AHE!";
+                playSound('fanfare');
+                initConfetti();
+            } else if (state.score >= 500) {
+                evalMsg.innerHTML = "Hebat Sekali! Kamu sudah sangat lancar menghitung perkalian 9. Sedikit latihan lagi untuk jadi juara!";
+                playSound('fanfare');
+                initConfetti();
+            } else {
+                evalMsg.innerHTML = "Kerja Bagus! Setiap latihan membuatmu semakin pintar. Mari berlatih lagi bersama gurumu di Bimbel AHE Pilar Ilmu!";
+            }
+        }
+
+        // Restart Permainan (Atur Ulang Penuh)
+        function restartGame() {
+            playSound('click');
+            confettiActive = false;
+
+            // Atur ulang input form
+            document.getElementById('student-name').value = "";
+            document.getElementById('student-class').value = "2";
+            document.getElementById('student-absent').value = "";
+
+            resultScreen.classList.remove('active');
+            welcomeScreen.classList.add('active');
+        }
+
+        // --- Efek Konfeti Ceria (100% Offline Tanpa Library) ---
+        let canvas, ctx, confettiActive = false;
+        const colors = ['#f39c12', '#e67e22', '#d61c59', '#a11462', '#5c0f75', '#2ecc71', '#3498db'];
+        let particles = [];
+
+        function initConfetti() {
+            canvas = document.getElementById('confetti-canvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            confettiActive = true;
+            particles = [];
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+            requestAnimationFrame(updateConfetti);
+        }
+
+        function resizeCanvas() {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        }
+
+        function updateConfetti() {
+            if (!confettiActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.y += Math.cos(p.d) + 1 + p.r / 2;
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.tilt = Math.sin(p.tiltAngle - i / 3) * 15;
+
+                if (p.y > canvas.height) {
+                    p.x = Math.random() * canvas.width;
+                    p.y = -20;
+                    p.tilt = Math.random() * 10 - 5;
+                }
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(updateConfetti);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            confettiActive = false;
+        });
+    </script>
+</body>
+</html>

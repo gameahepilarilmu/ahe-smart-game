@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHE Smart Game - Ular Tangga Perkalian 2</title>
+    <!-- Tailwind CSS untuk tata letak modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti untuk merayakan kemenangan -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: radial-gradient(circle, #fdf4ff 0%, #fae8ff 100%);
+        }
+        
+        .title-font {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Kontainer Papan Ular Tangga */
+        .board-container {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        /* Transisi Token Pemain */
+        .token {
+            transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1), top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 30;
+        }
+
+        /* Animasi Lempar Dadu */
+        @keyframes roll {
+            0% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(-45deg) scale(1.1); }
+            40% { transform: rotate(180deg) scale(1.2); }
+            60% { transform: rotate(270deg) scale(0.9); }
+            80% { transform: rotate(320deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .rolling {
+            animation: roll 0.6s ease-in-out;
+        }
+
+        /* Gradasi khusus identitas AHE */
+        .brand-gradient {
+            background: linear-gradient(135deg, #a21caf 0%, #db2777 100%);
+        }
+
+        /* Efek Berdenyut untuk Kotak Soal */
+        @keyframes pulse-light {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .pulse-effect {
+            animation: pulse-light 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-4 text-slate-800">
+
+    <!-- HEADER & IDENTITAS BRAND -->
+    <header class="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-lg border border-purple-100 gap-4 mb-4">
+        <div class="flex items-center gap-3">
+            <!-- Logo Resmi SVG AHE Pilar Ilmu -->
+            <div class="w-16 h-16 flex-shrink-0">
+                <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                    <circle cx="50" cy="50" r="45" fill="url(#aheGrad)" stroke="#f59e0b" stroke-width="3"/>
+                    <ellipse cx="50" cy="35" rx="35" ry="18" fill="#ffffff" opacity="0.15"/>
+                    <ellipse cx="50" cy="32" rx="30" ry="14" fill="none" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="50" y="38" font-family="'Fredoka One', cursive" font-size="20" fill="#ffffff" text-anchor="middle">Ahe</text>
+                    <g transform="translate(20, 52) scale(0.6)">
+                        <!-- Pilar Ilmu -->
+                        <path d="M10,40 L10,15 L15,15 L15,40 Z" fill="#ffffff"/>
+                        <path d="M22,40 L22,15 L27,15 L27,40 Z" fill="#ffffff"/>
+                        <path d="M34,40 L34,15 L39,15 L39,40 Z" fill="#ffffff"/>
+                        <path d="M5,40 L44,40 L44,45 L5,45 Z" fill="#ffffff"/>
+                        <path d="M5,10 L44,10 L44,15 L5,15 Z" fill="#ffffff"/>
+                        <path d="M24.5,10 C18,3 8,10 8,10 L8,2 C8,2 18,-5 24.5,5 C31,-5 41,2 41,2 L41,10 C41,10 31,3 24.5,10 Z" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>
+                    </g>
+                    <text x="54" y="62" font-family="'Nunito', sans-serif" font-weight="900" font-size="7" fill="#ffffff" letter-spacing="1">Bimbel</text>
+                    <text x="54" y="72" font-family="'Fredoka One', cursive" font-size="11" fill="#f59e0b">PILAR</text>
+                    <text x="54" y="82" font-family="'Fredoka One', cursive" font-size="11" fill="#ffffff">ILMU</text>
+                    <defs>
+                        <radialGradient id="aheGrad" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#d946ef"/>
+                            <stop offset="100%" stop-color="#701a75"/>
+                        </radialGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl title-font text-purple-800 leading-tight">AHE Smart Game</h1>
+                <p class="text-xs font-black text-pink-600 tracking-wider">Bimbel AHE Pilar Ilmu</p>
+                <p class="text-[10px] md:text-xs text-slate-500 italic">"Belajar Menyenangkan, Potensi Tak Terbatas."</p>
+            </div>
+        </div>
+
+        <!-- Live Stats Panel -->
+        <div id="header-stats" class="hidden sm:flex items-center gap-3">
+            <div class="bg-purple-100 px-4 py-2 rounded-2xl flex flex-col items-center border border-purple-200">
+                <span class="text-[9px] font-bold text-purple-500 uppercase">Siswa</span>
+                <span id="stat-player-name" class="text-xs font-black text-purple-900">Petualang</span>
+            </div>
+            <div class="bg-pink-100 px-4 py-2 rounded-2xl flex flex-col items-center border border-pink-200">
+                <span class="text-[9px] font-bold text-pink-500 uppercase">Skor</span>
+                <span id="stat-player-score" class="text-xs font-black text-pink-900">0</span>
+            </div>
+            <div class="bg-red-50 px-4 py-2 rounded-2xl flex flex-col items-center border border-red-100">
+                <span class="text-[9px] font-bold text-red-500 uppercase">Nyawa</span>
+                <div id="hearts-container" class="flex gap-0.5 text-red-500 text-xs mt-0.5"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- UTAMA: AREA PERMAINAN -->
+    <main class="w-full max-w-4xl flex-grow flex flex-col items-center justify-center">
+
+        <!-- 1. SCREEN AWAL: REGISTRASI SISWA -->
+        <section id="screen-welcome" class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-purple-100 flex flex-col gap-5 text-center transition duration-300">
+            <div>
+                <span class="bg-purple-100 text-purple-700 text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest">Aktivitas Interaktif</span>
+                <h2 class="text-2xl md:text-3xl title-font text-purple-800 mt-3">Ular Tangga Perkalian</h2>
+                <p class="text-slate-500 text-sm mt-1">Latih ketangkasan perkalian 2 untuk naik tangga menuju kemenangan!</p>
+            </div>
+
+            <!-- Form Siswa -->
+            <form id="form-identity" class="text-left flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-600 uppercase mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="input-name" required placeholder="Tulis namamu disini..." class="w-full px-4 py-3 rounded-xl border-2 border-purple-100 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition font-semibold">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-600 uppercase mb-1">Kelas</label>
+                        <select id="input-class" class="w-full px-4 py-3 rounded-xl border-2 border-purple-100 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition bg-white font-semibold">
+                            <option value="SD - Kelas 1">SD - Kelas 1</option>
+                            <option value="SD - Kelas 2" selected>SD - Kelas 2</option>
+                            <option value="SD - Kelas 3">SD - Kelas 3</option>
+                            <option value="SD - Kelas 4">SD - Kelas 4</option>
+                            <option value="SD - Kelas 5">SD - Kelas 5</option>
+                            <option value="SD - Kelas 6">SD - Kelas 6</option>
+                            <option value="SMP - Kelas 7">SMP - Kelas 7</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-600 uppercase mb-1">Nomor Absen</label>
+                        <input type="number" id="input-absen" min="1" max="50" required placeholder="Contoh: 7" class="w-full px-4 py-3 rounded-xl border-2 border-purple-100 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition font-semibold">
+                    </div>
+                </div>
+
+                <div class="bg-purple-50/80 p-4 rounded-2xl border border-purple-100 text-xs text-purple-950 flex flex-col gap-2">
+                    <span class="font-black text-purple-800 flex items-center gap-1">📜 Petunjuk Penting:</span>
+                    <ul class="list-disc list-inside space-y-1 text-slate-600 font-medium">
+                        <li>Lempar dadu untuk menggerakkan token di papan 100 petak.</li>
+                        <li>Petak berlogo <span class="text-purple-700 font-bold">Buku / Soal</span> akan mengujimu dengan perkalian 2.</li>
+                        <li>Jawaban yang benar akan mengamankan posisimu.</li>
+                        <li>Jawaban salah akan mengurangi <span class="text-red-500 font-bold">1 Nyawa</span> dan mengembalikan posisi token!</li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="w-full py-4 brand-gradient text-white rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:opacity-95 transform active:scale-95 transition text-center title-font tracking-wider text-lg">Mulai Bermain! 🚀</button>
+            </form>
+        </section>
+
+        <!-- 2. SCREEN UTAMA: PAPAN PERMAINAN & KONTROL -->
+        <section id="screen-game" class="hidden w-full flex flex-col lg:flex-row gap-6 items-center justify-center transition duration-300">
+            
+            <!-- PANEL KIRI: Papan Ular Tangga -->
+            <div class="w-full max-w-[480px] bg-white p-4 rounded-3xl shadow-xl border border-purple-100 relative">
+                <div class="board-container bg-amber-50 rounded-2xl overflow-hidden border-4 border-purple-400 relative">
+                    <!-- Grid Canvas Background -->
+                    <div id="board-grid" class="grid grid-cols-10 grid-rows-10 w-full h-full text-[9px] font-extrabold">
+                        <!-- Digenerate menggunakan JavaScript secara dinamis -->
+                    </div>
+
+                    <!-- SVG Layer untuk Tangga & Ular -->
+                    <svg id="board-svg" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10" viewBox="0 0 500 500">
+                        <!-- Jalur ular dan tangga digambar di sini -->
+                    </svg>
+
+                    <!-- Token Pemain -->
+                    <div id="player-token" class="absolute token w-[8%] h-[8%] rounded-full bg-gradient-to-tr from-yellow-400 to-amber-500 border-2 border-white shadow-lg flex items-center justify-center pointer-events-none" style="left: 4%; bottom: 4%;">
+                        <div class="w-3.5 h-3.5 bg-white rounded-full opacity-75 animate-ping"></div>
+                        <span class="absolute text-[8px] font-black text-amber-950">AHE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL KANAN: Kontrol & Status -->
+            <div class="w-full max-w-[340px] flex flex-col gap-4">
+                
+                <!-- Info Status Siswa di Mobile/Layar Kecil -->
+                <div class="sm:hidden flex justify-between bg-white p-4 rounded-2xl shadow-md border border-purple-100">
+                    <div class="text-xs">
+                        <p class="text-slate-400 font-bold uppercase text-[9px]">Siswa</p>
+                        <p id="mobile-name" class="font-black text-purple-900"></p>
+                    </div>
+                    <div class="text-xs text-center">
+                        <p class="text-slate-400 font-bold uppercase text-[9px]">Skor</p>
+                        <p id="mobile-score" class="font-black text-pink-600">0</p>
+                    </div>
+                    <div class="text-xs text-right">
+                        <p class="text-slate-400 font-bold uppercase text-[9px]">Nyawa</p>
+                        <div id="mobile-hearts" class="flex gap-0.5 text-red-500 mt-0.5 justify-end"></div>
+                    </div>
+                </div>
+
+                <!-- Live Progress Bar -->
+                <div class="bg-white p-4 rounded-2xl shadow-md border border-purple-100">
+                    <div class="flex justify-between items-center mb-1.5 text-xs font-bold text-purple-900">
+                        <span>Langkah Menuju Finish:</span>
+                        <span id="progress-text" class="font-black text-purple-700">Petak 1 / 100</span>
+                    </div>
+                    <div class="w-full bg-purple-100 h-3 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="brand-gradient h-full w-[1%] transition-all duration-500"></div>
+                    </div>
+                </div>
+
+                <!-- Bagian Pengocok Dadu -->
+                <div class="bg-white p-6 rounded-3xl shadow-xl border border-purple-100 flex flex-col items-center gap-4 text-center">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Klik Dadu Untuk Melangkah</p>
+                    
+                    <!-- Visual Dadu 3D -->
+                    <div id="dice-box" class="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-lg flex items-center justify-center cursor-pointer border-4 border-white ring-4 ring-purple-100 transition duration-100 hover:scale-105 active:scale-95">
+                        <div id="dice-dots" class="grid grid-cols-3 gap-1.5 p-3.5 w-full h-full items-center justify-items-center">
+                            <!-- Dot dadu dinamis -->
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-1 min-h-[44px] justify-center">
+                        <p id="dice-result-text" class="text-xs font-bold text-slate-500">Giliranmu lempar dadu!</p>
+                        <p id="game-status-log" class="text-xs text-purple-700 font-black h-4"></p>
+                    </div>
+
+                    <button id="btn-roll-dice" class="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black rounded-xl shadow-lg shadow-orange-500/20 transition transform active:scale-95 title-font tracking-widest">🎲 LEMPAR DADU</button>
+                    
+                    <!-- Reset button -->
+                    <button id="btn-restart-game" class="text-xs text-slate-400 hover:text-red-500 font-bold transition mt-1">🔄 Ulangi dari Awal</button>
+                </div>
+
+                <!-- Log Riwayat Singkat -->
+                <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-[10px] text-slate-500">
+                    <p class="font-extrabold text-slate-600 mb-1">Riwayat Perjalanan:</p>
+                    <div id="log-list" class="max-h-[60px] overflow-y-auto flex flex-col gap-0.5 font-medium">
+                        <p class="italic text-slate-400">Selamat berpetualang!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. POPUP MODAL: TANTANGAN PERKALIAN -->
+        <section id="modal-quiz" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border-4 border-purple-200 transform scale-95 transition-all duration-300 flex flex-col gap-4 text-center">
+                <div>
+                    <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Tantangan Kotak Ilmu</span>
+                    <h3 class="text-xl title-font text-purple-800 mt-2">Selesaikan Tantangan!</h3>
+                    <p class="text-xs text-slate-500">Sentuh jawaban yang paling tepat!</p>
+                </div>
+
+                <!-- Timer countdown visual -->
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div id="quiz-timer-bar" class="bg-pink-500 h-full w-full transition-all duration-1000 ease-linear"></div>
+                </div>
+
+                <!-- Formula Matematika Utama -->
+                <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pertanyaan</p>
+                    <p id="quiz-question" class="text-4xl font-black text-purple-950 title-font tracking-wide">2 x 5 = ...</p>
+                </div>
+
+                <!-- Pilihan Ganda -->
+                <div class="grid grid-cols-2 gap-3" id="quiz-options-container">
+                    <!-- Tombol diisi otomatis via JS -->
+                </div>
+
+                <div class="text-xs font-bold text-slate-400">
+                    Sisa waktu menjawab: <span id="quiz-timer-text" class="text-pink-600 font-extrabold text-sm">15</span> detik
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. POPUP MODAL: FEEDBACK JAWABAN (BENAR / SALAH / TIME OUT) -->
+        <section id="modal-feedback" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border-4 transform scale-95 transition-all duration-300 flex flex-col gap-4 text-center" id="feedback-card">
+                <div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-3xl" id="feedback-icon">
+                    <!-- Icon -->
+                </div>
+                <div>
+                    <h4 class="text-xl title-font text-slate-800" id="feedback-title">Hebat!</h4>
+                    <p class="text-sm text-slate-500 mt-1" id="feedback-message">Jawaban kamu luar biasa tepat.</p>
+                </div>
+
+                <!-- Pembahasan matematika singkat & bermakna -->
+                <div class="bg-slate-50 p-4 rounded-2xl text-left border border-slate-100">
+                    <p class="text-xs font-black text-purple-800 mb-1 flex items-center gap-1">💡 Penjelasan Konsep:</p>
+                    <p id="feedback-explanation" class="text-xs text-slate-600 leading-relaxed font-medium"></p>
+                </div>
+
+                <button id="btn-close-feedback" class="w-full py-3.5 bg-purple-700 hover:bg-purple-800 text-white font-extrabold rounded-xl shadow-lg transition transform active:scale-95 text-sm tracking-wider">Lanjutkan Perjalanan ➔</button>
+            </div>
+        </section>
+
+        <!-- 5. SCREEN AKHIR: HASIL LAPORAN BELAJAR -->
+        <section id="screen-result" class="hidden w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-purple-100 text-center flex flex-col gap-5 animate-fade-in">
+            <div class="relative">
+                <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-full flex items-center justify-center text-5xl shadow-lg border-4 border-white mb-3">
+                    🏆
+                </div>
+                <h2 class="text-2xl md:text-3xl title-font text-purple-800">Petualangan Selesai!</h2>
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Laporan Perkembangan Belajar</p>
+            </div>
+
+            <!-- Kartu Laporan Belajar Siswa -->
+            <div class="bg-purple-50 rounded-2xl p-5 border border-purple-100 text-left flex flex-col gap-3 font-semibold text-slate-700">
+                <div class="flex justify-between border-b border-purple-100 pb-2 text-xs">
+                    <span class="text-slate-400">Nama Lengkap:</span>
+                    <span id="result-name" class="text-purple-950 font-black">-</span>
+                </div>
+                <div class="flex justify-between border-b border-purple-100 pb-2 text-xs">
+                    <span class="text-slate-400">Kelas / Absen:</span>
+                    <span id="result-class-absen" class="text-purple-950 font-black">-</span>
+                </div>
+                <div class="flex justify-between border-b border-purple-100 pb-2 text-xs">
+                    <span class="text-slate-400">Skor Akhir:</span>
+                    <span id="result-score" class="text-pink-600 font-black">-</span>
+                </div>
+                <div class="flex justify-between border-b border-purple-100 pb-2 text-xs">
+                    <span class="text-slate-400">Status Belajar:</span>
+                    <span id="result-status" class="text-emerald-600 font-black">-</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Total Putaran Dadu:</span>
+                    <span id="result-rolls" class="text-slate-800 font-black">-</span>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-400 italic font-medium px-4">
+                "Hebat sekali! Terus berlatih perkalian agar kemampuan matematikamu makin tak terbatas bersama Bimbel AHE Pilar Ilmu."
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <button id="btn-play-again" class="w-full py-4 brand-gradient text-white rounded-xl font-bold shadow-lg shadow-purple-500/30 hover:opacity-95 transform active:scale-95 transition text-center title-font tracking-widest">🔄 MAIN LAGI</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-4 mt-6 border-t border-purple-100/30 text-[10px] text-purple-600/60 font-bold tracking-wider">
+        AHE Smart Game &copy; 2026 Bimbel AHE Pilar Ilmu. <br>
+        <span class="text-pink-500">"Belajar Menyenangkan, Potensi Tak Terbatas."</span>
+    </footer>
+
+    <!-- JAVASCRIPT GAMEPLAY ENGINE -->
+    <script>
+        // =========================================================
+        // 1. DATA DATABASE SOAL PERKALIAN 2 (GAMPANG DIEDIT GURU)
+        // =========================================================
+        const QUESTIONS_DATABASE = [
+            { id: 1, q: "2 x 1", options: [2, 4, 6, 8], answer: 2, explanation: "2 x 1 berarti angka 2-nya ada 1 kali. Maka hasilnya adalah 2." },
+            { id: 2, q: "2 x 2", options: [2, 4, 6, 8], answer: 4, explanation: "2 x 2 sama dengan menjumlahkan 2 + 2. Hasilnya adalah 4." },
+            { id: 3, q: "2 x 3", options: [4, 6, 8, 10], answer: 6, explanation: "2 x 3 sama dengan menjumlahkan 2 sebanyak 3 kali (2 + 2 + 2 = 6)." },
+            { id: 4, q: "2 x 4", options: [6, 8, 10, 12], answer: 8, explanation: "2 x 4 berarti 2-nya ada 4 kali (2 + 2 + 2 + 2 = 8)." },
+            { id: 5, q: "2 x 5", options: [8, 10, 12, 14], answer: 10, explanation: "2 x 5 berarti menjumlahkan 2 sebanyak 5 kali. Hasilnya adalah 10." },
+            { id: 6, q: "2 x 6", options: [10, 12, 14, 16], answer: 12, explanation: "2 x 6 sama dengan 2 + 2 + 2 + 2 + 2 + 2. Hasilnya adalah 12." },
+            { id: 7, q: "2 x 7", options: [12, 14, 16, 18], answer: 14, explanation: "2 x 7 sama dengan menjumlahkan 2 sebanyak 7 kali. Hasilnya adalah 14." },
+            { id: 8, q: "2 x 8", options: [14, 16, 18, 20], answer: 16, explanation: "2 x 8 sama dengan menjumlahkan 2 sebanyak 8 kali. Hasilnya adalah 16." },
+            { id: 9, q: "2 x 9", options: [16, 18, 20, 22], answer: 18, explanation: "2 x 9 sama dengan menjumlahkan 2 sebanyak 9 kali. Hasilnya adalah 18." },
+            { id: 10, q: "2 x 10", options: [18, 20, 22, 24], answer: 20, explanation: "2 x 10 sama dengan menjumlahkan 2 sebanyak 10 kali. Hasilnya adalah 20." },
+            { id: 11, q: "2 x 11", options: [20, 22, 24, 26], answer: 22, explanation: "2 x 11 sama dengan menjumlahkan 2 sebanyak 11 kali. Hasilnya adalah 22." },
+            { id: 12, q: "2 x 12", options: [22, 24, 26, 28], answer: 24, explanation: "2 x 12 sama dengan menjumlahkan 2 sebanyak 12 kali. Hasilnya adalah 24." }
+        ];
+
+        // Definisi Tangga Naik (Start -> End)
+        const LADDERS = [
+            { start: 3, end: 21 },
+            { start: 8, end: 30 },
+            { start: 28, end: 84 },
+            { start: 58, end: 77 },
+            { start: 75, end: 86 },
+            { start: 80, end: 99 }
+        ];
+
+        // Definisi Ular Turun (Start -> End)
+        const SNAKES = [
+            { start: 17, end: 4 },
+            { start: 52, end: 29 },
+            { start: 62, end: 19 },
+            { start: 92, end: 51 },
+            { start: 95, end: 72 },
+            { start: 98, end: 79 }
+        ];
+
+        // Kotak Spesial Soal (Supaya merata sepanjang papan)
+        const QUIZ_TILES = [
+            5, 12, 15, 22, 25, 34, 39, 42, 47, 50, 56, 60, 65, 70, 78, 83, 88, 93, 97
+        ];
+
+        // =========================================================
+        // 2. STATE GAME (SISTEM STATUS & KONFIGURASI)
+        // =========================================================
+        let gameState = {
+            playerName: "Siswa",
+            playerClass: "SD - Kelas 2",
+            playerAbsen: "1",
+            currentPosition: 1,
+            previousPosition: 1,
+            score: 0,
+            lives: 3,
+            maxLives: 3,
+            totalRolls: 0,
+            isRolling: false,
+            isMoving: false,
+            currentQuiz: null,
+            timerInterval: null,
+            timeLimit: 15, // Detik pengerjaan soal
+            remainingTime: 15
+        };
+
+        // =========================================================
+        // 3. AUDIO SYNTHESIZER (WEB AUDIO API OFFLINE ENGINE)
+        // =========================================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(freq, type, duration) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Audio API not active yet. Requires interaction first.");
+            }
+        }
+
+        function playSuccessSound() {
+            playTone(523.25, 'sine', 0.15); // C5
+            setTimeout(() => playTone(659.25, 'sine', 0.15), 100); // E5
+            setTimeout(() => playTone(783.99, 'sine', 0.3), 200); // G5
+        }
+
+        function playFailSound() {
+            playTone(392.00, 'triangle', 0.2); // G4
+            setTimeout(() => playTone(311.13, 'triangle', 0.4), 180); // Eb4
+        }
+
+        function playDiceSound() {
+            let now = audioCtx.currentTime;
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    playTone(200 + Math.random() * 600, 'square', 0.05);
+                }, i * 60);
+            }
+        }
+
+        function playSlideUpSound() {
+            let steps = 10;
+            for (let i = 0; i < steps; i++) {
+                setTimeout(() => {
+                    playTone(300 + (i * 80), 'sine', 0.08);
+                }, i * 40);
+            }
+        }
+
+        function playSlideDownSound() {
+            let steps = 10;
+            for (let i = 0; i < steps; i++) {
+                setTimeout(() => {
+                    playTone(800 - (i * 60), 'sawtooth', 0.08);
+                }, i * 40);
+            }
+        }
+
+        // =========================================================
+        // 4. KONTROL INTERFACE DOM & RENDERING PAPAN
+        // =========================================================
+        const boardGrid = document.getElementById("board-grid");
+        const boardSvg = document.getElementById("board-svg");
+        const playerToken = document.getElementById("player-token");
+
+        // Pola Boustophedon untuk membuat urutan ular tangga (Zig-Zag)
+        function getCellCoordinates(num) {
+            let row = Math.floor((num - 1) / 10); // 0 (bawah) s.d 9 (atas)
+            let col = (num - 1) % 10;
+            // Jika row ganjil, hitung terbalik dari kanan ke kiri
+            if (row % 2 === 1) {
+                col = 9 - col;
+            }
+            return { row: row, col: col };
+        }
+
+        // Render struktur visual papan 10x10
+        function drawBoard() {
+            boardGrid.innerHTML = "";
+            
+            // Loop terbalik agar petak 100 berada di kiri atas, petak 1 di kiri bawah
+            for (let r = 9; r >= 0; r--) {
+                for (let c = 0; c < 10; c++) {
+                    // Cari nomor petak untuk koordinat baris dan kolom ini
+                    let cellNum = 0;
+                    if (r % 2 === 0) {
+                        cellNum = r * 10 + c + 1;
+                    } else {
+                        cellNum = r * 10 + (9 - c) + 1;
+                    }
+
+                    // Tentukan warna latar belakang berpola catur lembut
+                    let bgClass = "bg-purple-50/10";
+                    let textClass = "text-purple-900";
+                    
+                    if ((r + c) % 2 === 0) {
+                        bgClass = "bg-white";
+                    }
+
+                    // Deteksi jika petak ini adalah petak spesial, ular, atau tangga
+                    let specialContent = "";
+                    if (cellNum === 1) {
+                        specialContent = `<span class="text-[7px] text-emerald-600 block leading-none font-black">START</span>`;
+                    } else if (cellNum === 100) {
+                        specialContent = `<span class="text-[7px] text-pink-600 block leading-none font-black">FINISH 🏆</span>`;
+                    } else if (QUIZ_TILES.includes(cellNum)) {
+                        specialContent = `
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div class="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center border border-pink-300 shadow-sm relative">
+                                    <div class="absolute inset-0 rounded-full bg-pink-200 pulse-effect"></div>
+                                    <span class="text-[11px] font-black text-pink-700 relative z-10">📖</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // Deteksi Ular & Tangga untuk memberikan petunjuk angka kecil
+                    let extraTip = "";
+                    const hasLadder = LADDERS.find(l => l.start === cellNum);
+                    const hasSnake = SNAKES.find(s => s.start === cellNum);
+                    if (hasLadder) {
+                        extraTip = `<span class="text-[7px] text-amber-600 font-extrabold block">Tangga ⇧</span>`;
+                    } else if (hasSnake) {
+                        extraTip = `<span class="text-[7px] text-red-500 font-extrabold block">Ular ⇩</span>`;
+                    }
+
+                    boardGrid.innerHTML += `
+                        <div class="relative flex flex-col justify-between p-1 border border-purple-100/40 ${bgClass} ${textClass} h-full w-full select-none" id="cell-${cellNum}">
+                            <span class="z-10">${cellNum}</span>
+                            ${specialContent}
+                            ${extraTip}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Render Gambar Jalur Ular & Tangga pada SVG Layer agar Responsif
+        function drawBoardObjects() {
+            boardSvg.innerHTML = "";
+            const containerWidth = 500;
+            const containerHeight = 500;
+            const cellSize = 50;
+
+            // Generator Koordinat Pixels untuk SVG
+            function getPixelCoords(num) {
+                const { row, col } = getCellCoordinates(num);
+                // koordinat X dihitung dari kiri ke kanan (0 ke 9)
+                const x = col * cellSize + cellSize / 2;
+                // koordinat Y dihitung dari atas ke bawah (9 ke 0)
+                const y = (9 - row) * cellSize + cellSize / 2;
+                return { x, y };
+            }
+
+            // Definisikan Shadow / Filter pada SVG
+            boardSvg.innerHTML += `
+                <defs>
+                    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                        <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-opacity="0.3"/>
+                    </filter>
+                    <linearGradient id="ladderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#b45309" />
+                        <stop offset="50%" stop-color="#d97706" />
+                        <stop offset="100%" stop-color="#b45309" />
+                    </linearGradient>
+                </defs>
+            `;
+
+            // 1. Gambar Semua Tangga
+            LADDERS.forEach(ladder => {
+                const startPt = getPixelCoords(ladder.start);
+                const endPt = getPixelCoords(ladder.end);
+
+                // Kemiringan & Jarak
+                const dx = endPt.x - startPt.x;
+                const dy = endPt.y - startPt.y;
+                const angle = Math.atan2(dy, dx);
+                const distance = Math.hypot(dx, dy);
+
+                // Offset sisi tangga (kiri dan kanan)
+                const offset = 6;
+                const lx1 = startPt.x - offset * Math.sin(angle);
+                const ly1 = startPt.y + offset * Math.cos(angle);
+                const rx1 = startPt.x + offset * Math.sin(angle);
+                const ry1 = startPt.y - offset * Math.cos(angle);
+
+                const lx2 = endPt.x - offset * Math.sin(angle);
+                const ly2 = endPt.y + offset * Math.cos(angle);
+                const rx2 = endPt.x + offset * Math.sin(angle);
+                const ry2 = endPt.y - offset * Math.cos(angle);
+
+                // Gambar 2 tiang utama tangga
+                let ladderGroup = `
+                    <g filter="url(#shadow)">
+                        <line x1="${lx1}" y1="${ly1}" x2="${lx2}" y2="${ly2}" stroke="url(#ladderGrad)" stroke-width="3" stroke-linecap="round"/>
+                        <line x1="${rx1}" y1="${ry1}" x2="${rx2}" y2="${ry2}" stroke="url(#ladderGrad)" stroke-width="3" stroke-linecap="round"/>
+                `;
+
+                // Gambar anak tangga secara merata di sepanjang jarak
+                const numRungs = Math.floor(distance / 16);
+                for (let i = 1; i < numRungs; i++) {
+                    const t = i / numRungs;
+                    // Interpolasi linier titik anak tangga
+                    const px = startPt.x + t * dx;
+                    const py = startPt.y + t * dy;
+
+                    const rX1 = px - offset * Math.sin(angle);
+                    const rY1 = py + offset * Math.cos(angle);
+                    const rX2 = px + offset * Math.sin(angle);
+                    const rY2 = py - offset * Math.cos(angle);
+
+                    ladderGroup += `<line x1="${rX1}" y1="${rY1}" x2="${rX2}" y2="${rY2}" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"/>`;
+                }
+
+                ladderGroup += `</g>`;
+                boardSvg.innerHTML += ladderGroup;
+            });
+
+            // 2. Gambar Semua Ular
+            SNAKES.forEach((snake, index) => {
+                const startPt = getPixelCoords(snake.start); // Kepala ular (posisi atas)
+                const endPt = getPixelCoords(snake.end);     // Ekor ular (posisi bawah)
+
+                // Membuat jalur melengkung (Wave Bezier Curve)
+                const midX = (startPt.x + endPt.x) / 2;
+                const midY = (startPt.y + endPt.y) / 2;
+                
+                // Variasi kelengkungan acak tapi terprediksi agar tidak menumpuk
+                const devX = index % 2 === 0 ? 35 : -35;
+                const cp1x = startPt.x + devX;
+                const cp1y = startPt.y + 15;
+                const cp2x = endPt.x - devX;
+                const cp2y = endPt.y - 15;
+
+                const pathData = `M ${startPt.x} ${startPt.y} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${endPt.x} ${endPt.y}`;
+
+                // Variasi Warna Badan Ular (Merah / Oranye)
+                const snakeColor = index % 2 === 0 ? "#ef4444" : "#f97316";
+                const bellyColor = index % 2 === 0 ? "#fee2e2" : "#ffedd5";
+
+                // Kelompok elemen gambar ular
+                const snakeElement = `
+                    <g filter="url(#shadow)">
+                        <!-- Badan Luar -->
+                        <path d="${pathData}" fill="none" stroke="${snakeColor}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Detail Perut Ular -->
+                        <path d="${pathData}" fill="none" stroke="${bellyColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3,3"/>
+                        <!-- Kepala Ular -->
+                        <circle cx="${startPt.x}" cy="${startPt.y}" r="6.5" fill="${snakeColor}"/>
+                        <!-- Detail Mata Ular -->
+                        <circle cx="${startPt.x - 2}" cy="${startPt.y - 2}" r="1.5" fill="#ffffff"/>
+                        <circle cx="${startPt.x + 2}" cy="${startPt.y - 2}" r="1.5" fill="#ffffff"/>
+                        <circle cx="${startPt.x - 2}" cy="${startPt.y - 2}" r="0.7" fill="#000000"/>
+                        <circle cx="${startPt.x + 2}" cy="${startPt.y - 2}" r="0.7" fill="#000000"/>
+                    </g>
+                `;
+                boardSvg.innerHTML += snakeElement;
+            });
+        }
+
+        // Perbarui Visual Posisi Token secara Halus
+        function updateTokenPosition() {
+            const { row, col } = getCellCoordinates(gameState.currentPosition);
+            // Hitung persentase posisi responsif terhadap ukuran kontainer papan
+            const leftPercent = (col * 10) + 5; // Geser 5% ke tengah kolom
+            const bottomPercent = (row * 10) + 5; // Geser 5% ke tengah baris dari bawah
+
+            playerToken.style.left = `${leftPercent}%`;
+            playerToken.style.bottom = `${bottomPercent}%`;
+
+            // update teks progress
+            document.getElementById("progress-text").textContent = `Petak ${gameState.currentPosition} / 100`;
+            document.getElementById("progress-bar").style.width = `${gameState.currentPosition}%`;
+        }
+
+        // =========================================================
+        // 5. NAVIGASI LAYAR / SKENARIO SCREEN
+        // =========================================================
+        function showScreen(screenId) {
+            document.getElementById("screen-welcome").classList.add("hidden");
+            document.getElementById("screen-game").classList.add("hidden");
+            document.getElementById("screen-result").classList.add("hidden");
+
+            document.getElementById(screenId).classList.remove("hidden");
+            
+            if (screenId === "screen-game") {
+                document.getElementById("header-stats").classList.remove("hidden");
+                // Perbarui data stats
+                document.getElementById("stat-player-name").textContent = gameState.playerName;
+                document.getElementById("mobile-name").textContent = gameState.playerName;
+                updateStatsUI();
+                updateTokenPosition();
+            } else {
+                document.getElementById("header-stats").classList.add("hidden");
+            }
+        }
+
+        // =========================================================
+        // 6. LOGIK UTAMA SISTEM GAME & PENGENDALI NYAWA
+        // =========================================================
+        function updateStatsUI() {
+            document.getElementById("stat-player-score").textContent = gameState.score;
+            document.getElementById("mobile-score").textContent = gameState.score;
+
+            // Render Nyawa Lambang Love
+            const renderHearts = (containerId) => {
+                const el = document.getElementById(containerId);
+                el.innerHTML = "";
+                for (let i = 0; i < gameState.maxLives; i++) {
+                    if (i < gameState.lives) {
+                        el.innerHTML += "❤️";
+                    } else {
+                        el.innerHTML += "🖤";
+                    }
+                }
+            };
+            renderHearts("hearts-container");
+            renderHearts("mobile-hearts");
+        }
+
+        function addLog(message) {
+            const logList = document.getElementById("log-list");
+            logList.innerHTML = `<p class="leading-relaxed">⚡ ${message}</p>` + logList.innerHTML;
+        }
+
+        // =========================================================
+        // 7. ENGINE LANGKAH PEMAIN (STEP-BY-STEP MOVEMENT)
+        // =========================================================
+        async function moveTokenGradually(steps) {
+            gameState.isMoving = true;
+            gameState.previousPosition = gameState.currentPosition;
+
+            for (let i = 0; i < steps; i++) {
+                // Hentikan gerak jika melampaui petak 100
+                if (gameState.currentPosition >= 100) {
+                    gameState.currentPosition = 100;
+                    break;
+                }
+                gameState.currentPosition += 1;
+                playTone(400 + (gameState.currentPosition * 3), 'sine', 0.1);
+                updateTokenPosition();
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            gameState.isMoving = false;
+            handleLandingEvent();
+        }
+
+        // Evaluasi Tindakan setelah Token Selesai Melangkah
+        function handleLandingEvent() {
+            const pos = gameState.currentPosition;
+            addLog(`Mendarat di petak ${pos}.`);
+
+            // 1. Cek Apakah Mencapai Finish
+            if (pos >= 100) {
+                triggerVictory();
+                return;
+            }
+
+            // 2. Cek Apakah Berada di Petak Soal Matematika
+            if (QUIZ_TILES.includes(pos)) {
+                setTimeout(() => {
+                    triggerQuizChallenge();
+                }, 400);
+                return;
+            }
+
+            // 3. Cek Apakah Menemukan Tangga / Ular
+            checkSnakesAndLadders();
+        }
+
+        function checkSnakesAndLadders() {
+            const pos = gameState.currentPosition;
+
+            // Cek Tangga
+            const ladder = LADDERS.find(l => l.start === pos);
+            if (ladder) {
+                playSlideUpSound();
+                addLog(`Hebat! Ada tangga dari petak ${pos} naik ke petak ${ladder.end}!`);
+                document.getElementById("game-status-log").textContent = "Naik tangga! ⇧";
+                
+                gameState.currentPosition = ladder.end;
+                setTimeout(() => {
+                    updateTokenPosition();
+                    checkSnakesAndLadders(); // Sesaat setelah naik tangga, cek ulang (bisa saja ada finish/kondisi lain)
+                }, 600);
+                return;
+            }
+
+            // Cek Ular
+            const snake = SNAKES.find(s => s.start === pos);
+            if (snake) {
+                playSlideDownSound();
+                addLog(`Aduh! Terpeleset ular dari petak ${pos} turun ke petak ${snake.end}!`);
+                document.getElementById("game-status-log").textContent = "Turun ular! ⇩";
+                
+                gameState.currentPosition = snake.end;
+                setTimeout(() => {
+                    updateTokenPosition();
+                }, 600);
+                return;
+            }
+
+            // Jika bersih, kembalikan kontrol giliran ke pemain
+            document.getElementById("btn-roll-dice").disabled = false;
+            document.getElementById("btn-roll-dice").textContent = "🎲 LEMPAR DADU";
+        }
+
+        // =========================================================
+        // 8. KUIS MATEMATIKA INTERAKTIF (PERKALIAN 2)
+        // =========================================================
+        function triggerQuizChallenge() {
+            // Ambil soal acak dari database
+            const randomIndex = Math.floor(Math.random() * QUESTIONS_DATABASE.length);
+            gameState.currentQuiz = QUESTIONS_DATABASE[randomIndex];
+
+            // Pasang Teks Soal
+            document.getElementById("quiz-question").textContent = `${gameState.currentQuiz.q} = ...`;
+
+            // Acak letak pilihan jawaban
+            const options = [...gameState.currentQuiz.options];
+            options.sort(() => Math.random() - 0.5);
+
+            // Tampilkan Tombol Jawaban
+            const container = document.getElementById("quiz-options-container");
+            container.innerHTML = "";
+            options.forEach(opt => {
+                container.innerHTML += `
+                    <button class="btn-option py-3.5 bg-purple-50 hover:bg-purple-100 border-2 border-purple-200 hover:border-purple-500 font-extrabold text-lg text-purple-900 rounded-2xl transform active:scale-95 transition" onclick="submitAnswer(${opt})">
+                        ${opt}
+                    </button>
+                `;
+            });
+
+            // Tampilkan Modal Tantangan
+            document.getElementById("modal-quiz").classList.remove("hidden");
+
+            // Reset dan Jalankan Timer
+            gameState.remainingTime = gameState.timeLimit;
+            document.getElementById("quiz-timer-text").textContent = gameState.remainingTime;
+            const timerBar = document.getElementById("quiz-timer-bar");
+            timerBar.style.width = "100%";
+
+            // Bersihkan timer sebelumnya jika ada
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                gameState.remainingTime--;
+                document.getElementById("quiz-timer-text").textContent = gameState.remainingTime;
+                
+                // Hitung lebar bar sisa waktu
+                const percent = (gameState.remainingTime / gameState.timeLimit) * 100;
+                timerBar.style.width = `${percent}%`;
+
+                if (gameState.remainingTime <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    handleAnswerResult(false, true); // Kalah karena kehabisan waktu
+                }
+            }, 1000);
+        }
+
+        // Kirim Jawaban Terpilih
+        function submitAnswer(chosen) {
+            clearInterval(gameState.timerInterval);
+            const isCorrect = (chosen === gameState.currentQuiz.answer);
+            handleAnswerResult(isCorrect, false);
+        }
+
+        // Proses Hasil Pilihan Jawaban
+        function handleAnswerResult(isCorrect, isTimeout) {
+            // Sembunyikan modal kuis terlebih dahulu
+            document.getElementById("modal-quiz").classList.add("hidden");
+
+            const feedbackCard = document.getElementById("feedback-card");
+            const feedbackIcon = document.getElementById("feedback-icon");
+            const feedbackTitle = document.getElementById("feedback-title");
+            const feedbackMessage = document.getElementById("feedback-message");
+            const feedbackExplanation = document.getElementById("feedback-explanation");
+
+            // Setel penjelasan singkat & bermakna
+            feedbackExplanation.textContent = gameState.currentQuiz.explanation;
+
+            if (isCorrect) {
+                // Skenario Jawaban Benar
+                playSuccessSound();
+                gameState.score += 10;
+                gameState.lives = Math.min(gameState.lives + 1, gameState.maxLives); // Bonus pemulihan nyawa maks 3
+                
+                feedbackCard.className = "bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border-4 border-emerald-400 text-center transform scale-100 transition-all duration-300 flex flex-col gap-4";
+                feedbackIcon.innerHTML = "🏆";
+                feedbackIcon.className = "w-16 h-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center text-3xl";
+                feedbackTitle.className = "text-xl title-font text-emerald-800";
+                feedbackTitle.textContent = "Jawaban Tepat!";
+                feedbackMessage.textContent = "Kamu cerdas! Pertahankan prestasimu dan lanjutkan langkahmu.";
+                addLog(`Jawabanmu Benar! +10 Skor diperoleh.`);
+            } else {
+                // Skenario Jawaban Salah atau Habis Waktu
+                playFailSound();
+                gameState.lives--;
+                
+                feedbackCard.className = "bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border-4 border-red-400 text-center transform scale-100 transition-all duration-300 flex flex-col gap-4";
+                feedbackIcon.innerHTML = "❌";
+                feedbackIcon.className = "w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center text-3xl";
+                feedbackTitle.className = "text-xl title-font text-red-800";
+                
+                if (isTimeout) {
+                    feedbackTitle.textContent = "Waktu Habis!";
+                    feedbackMessage.textContent = "Yah, waktu belajarmu habis untuk petak ini.";
+                    addLog(`Gagal menjawab karena kehabisan waktu. Nyawa berkurang.`);
+                } else {
+                    feedbackTitle.textContent = "Kurang Tepat!";
+                    feedbackMessage.textContent = "Tidak apa-apa, mari pelajari penjelasannya!";
+                    addLog(`Jawaban salah. Kehilangan 1 nyawa.`);
+                }
+
+                // Skenario Penalti: Kembalikan Posisi Token ke Posisi Sebelum Melempar Dadu saat putaran ini
+                gameState.currentPosition = gameState.previousPosition;
+                updateTokenPosition();
+            }
+
+            updateStatsUI();
+
+            // Tampilkan Modal Pembahasan Singkat
+            document.getElementById("modal-feedback").classList.remove("hidden");
+        }
+
+        // Tombol Close Penjelasan / Feedback diklik
+        document.getElementById("btn-close-feedback").addEventListener("click", () => {
+            document.getElementById("modal-feedback").classList.add("hidden");
+
+            // Cek Jika Nyawa Habis (Game Over)
+            if (gameState.lives <= 0) {
+                triggerGameOver();
+                return;
+            }
+
+            // Jika nyawa aman, lanjutkan proses tangga / ular jika ada di posisi sekarang
+            checkSnakesAndLadders();
+        });
+
+        // =========================================================
+        // 9. AKHIR PERMAINAN (MENANG / KALAH)
+        // =========================================================
+        function triggerVictory() {
+            playSuccessSound();
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+
+            // Isi Laporan Akhir
+            document.getElementById("result-name").textContent = gameState.playerName;
+            document.getElementById("result-class-absen").textContent = `${gameState.playerClass} / Absen ${gameState.playerAbsen}`;
+            document.getElementById("result-score").textContent = `${gameState.score} Poin`;
+            document.getElementById("result-status").textContent = "Berhasil Sampai Finish 🏆";
+            document.getElementById("result-status").className = "text-emerald-600 font-black";
+            document.getElementById("result-rolls").textContent = `${gameState.totalRolls} Kali Lemparan`;
+
+            showScreen("screen-result");
+        }
+
+        function triggerGameOver() {
+            playFailSound();
+            
+            // Isi Laporan Kegagalan
+            document.getElementById("result-name").textContent = gameState.playerName;
+            document.getElementById("result-class-absen").textContent = `${gameState.playerClass} / Absen ${gameState.playerAbsen}`;
+            document.getElementById("result-score").textContent = `${gameState.score} Poin`;
+            document.getElementById("result-status").textContent = "Nyawa Habis (Coba Lagi) 🚀";
+            document.getElementById("result-status").className = "text-red-500 font-black";
+            document.getElementById("result-rolls").textContent = `${gameState.totalRolls} Kali Lemparan`;
+
+            showScreen("screen-result");
+        }
+
+        // =========================================================
+        // 10. KONTROL DADU (ENGINE & ANIMASI)
+        // =========================================================
+        const diceBox = document.getElementById("dice-box");
+        const diceDots = document.getElementById("dice-dots");
+        const btnRoll = document.getElementById("btn-roll-dice");
+
+        // Pola penempatan titik (Dots) untuk nilai dadu 1 s.d 6
+        const DICE_DOT_PATTERNS = {
+            1: [4],
+            2: [2, 6],
+            3: [2, 4, 6],
+            4: [0, 2, 6, 8],
+            5: [0, 2, 4, 6, 8],
+            6: [0, 2, 3, 5, 6, 8]
+        };
+
+        function renderDiceValue(val) {
+            diceDots.innerHTML = "";
+            // Buat grid kosong 3x3 untuk visualisasi dot
+            for (let i = 0; i < 9; i++) {
+                if (DICE_DOT_PATTERNS[val].includes(i)) {
+                    diceDots.innerHTML += `<div class="w-2.5 h-2.5 rounded-full bg-white"></div>`;
+                } else {
+                    diceDots.innerHTML += `<div class="w-2.5 h-2.5 opacity-0"></div>`;
+                }
+            }
+        }
+
+        // Inisialisasi awal dadu dengan angka hoki 6
+        renderDiceValue(6);
+
+        function rollDiceAction() {
+            if (gameState.isRolling || gameState.isMoving) return;
+
+            gameState.isRolling = true;
+            btnRoll.disabled = true;
+            btnRoll.textContent = "⏳ SEDANG MENGOCOK...";
+            document.getElementById("game-status-log").textContent = "";
+
+            playDiceSound();
+            diceBox.classList.add("rolling");
+
+            // Efek berputar acak
+            let counter = 0;
+            let tempInterval = setInterval(() => {
+                let randomVal = Math.floor(Math.random() * 6) + 1;
+                renderDiceValue(randomVal);
+                counter++;
+                if (counter > 8) clearInterval(tempInterval);
+            }, 60);
+
+            setTimeout(() => {
+                diceBox.classList.remove("rolling");
+                
+                // Dapatkan Nilai Dadu Sebenarnya
+                const diceRoll = Math.floor(Math.random() * 6) + 1;
+                renderDiceValue(diceRoll);
+
+                gameState.totalRolls++;
+                document.getElementById("dice-result-text").textContent = `Kamu mendapatkan dadu angka ${diceRoll}!`;
+                addLog(`Dadu bergulir: ${diceRoll}.`);
+
+                gameState.isRolling = false;
+                
+                // Gerakkan Token secara bertahap
+                moveTokenGradually(diceRoll);
+            }, 600);
+        }
+
+        // Daftarkan Trigger Event Lempar Dadu
+        btnRoll.addEventListener("click", rollDiceAction);
+        diceBox.addEventListener("click", rollDiceAction);
+
+        // =========================================================
+        // 11. SISTEM FORMULIR & TOMBOL LAINNYA
+        // =========================================================
+        document.getElementById("form-identity").addEventListener("submit", (e) => {
+            e.preventDefault();
+            
+            // Setel data state dari input
+            gameState.playerName = document.getElementById("input-name").value.trim() || "Petualang";
+            gameState.playerClass = document.getElementById("input-class").value;
+            gameState.playerAbsen = document.getElementById("input-absen").value || "1";
+
+            // Inisialisasi ulang parameter game
+            resetGame();
+
+            // Pindah Layar
+            showScreen("screen-game");
+        });
+
+        function resetGame() {
+            gameState.currentPosition = 1;
+            gameState.previousPosition = 1;
+            gameState.score = 0;
+            gameState.lives = 3;
+            gameState.totalRolls = 0;
+            gameState.isRolling = false;
+            gameState.isMoving = false;
+
+            document.getElementById("log-list").innerHTML = `<p class="italic text-slate-400">Permainan diulang. Semoga berhasil!</p>`;
+            document.getElementById("dice-result-text").textContent = "Giliranmu lempar dadu!";
+            document.getElementById("game-status-log").textContent = "";
+            btnRoll.disabled = false;
+            btnRoll.textContent = "🎲 LEMPAR DADU";
+
+            updateStatsUI();
+            updateTokenPosition();
+        }
+
+        document.getElementById("btn-restart-game").addEventListener("click", () => {
+            if (confirm("Apakah kamu yakin ingin mengulangi petualangan ini dari awal?")) {
+                resetGame();
+            }
+        });
+
+        document.getElementById("btn-play-again").addEventListener("click", () => {
+            showScreen("screen-welcome");
+        });
+
+        // =========================================================
+        // 12. RUNNING PERTAMA KALI SAAT WINDOW DIBUKA
+        // =========================================================
+        window.onload = function() {
+            drawBoard();
+            drawBoardObjects();
+            showScreen("screen-welcome");
+        };
+
+        // Responsif saat ukuran window berubah agar SVG digambar ulang dengan presisi
+        window.onresize = function() {
+            drawBoardObjects();
+        };
+
+    </script>
+</body>
+</html>

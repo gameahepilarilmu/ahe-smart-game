@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AHE Smart Game - Balloon Pop Perkalian 5</title>
+  <!-- Tailwind CSS untuk Styling Responsif dan Modern -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts untuk Tipografi yang Ramah Anak dan Menarik -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      user-select: none;
+    }
+    .font-kids {
+      font-family: 'Fredoka One', cursive;
+    }
+    
+    /* Animasi Goyang (Salah) */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    /* Animasi Pecah Balon */
+    @keyframes pop {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.8; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+    .animate-pop {
+      animation: pop 0.3s forwards ease-out;
+    }
+
+    /* Kustomisasi Scrollbar Halus */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-2 sm:p-4 overflow-x-hidden">
+
+  <!-- Container Utama Aplikasi (Layout Vertikal Maksimal) -->
+  <div class="w-full max-w-xl bg-gradient-to-b from-purple-950 via-pink-900 to-purple-900 rounded-3xl shadow-2xl border-4 border-purple-400 overflow-hidden relative flex flex-col min-h-[95vh] sm:min-h-[90vh]">
+    
+    <!-- CANVAS KONFETI UNTUK AKHIR PERMAINAN (Kemenangan) -->
+    <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none z-50 hidden"></canvas>
+
+    <!-- LAYER HALAMAN PEMBUKA -->
+    <div id="screen-welcome" class="flex-1 flex flex-col items-center justify-between p-6 z-10">
+      
+      <!-- Logo AHE Pilar Ilmu (SVG Re-creation berkualitas tinggi sesuai logo asli) -->
+      <div class="flex flex-col items-center mt-4">
+        <div class="w-44 h-44 drop-shadow-lg mb-2">
+          <svg viewBox="0 0 400 400" class="w-full h-full">
+            <!-- Lingkaran Putih Terluar -->
+            <circle cx="200" cy="200" r="190" fill="#ffffff" />
+            <!-- Lingkaran Orange Tipis -->
+            <circle cx="200" cy="200" r="182" fill="none" stroke="#f59e0b" stroke-width="6" />
+            <!-- Lingkaran Gradasi Utama (Ungu - Pink - Ungu) -->
+            <defs>
+              <radialGradient id="logo-grad" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#ec4899" />
+                <stop offset="70%" stop-color="#b5179e" />
+                <stop offset="100%" stop-color="#4c1d95" />
+              </radialGradient>
+            </defs>
+            <circle cx="200" cy="200" r="176" fill="url(#logo-grad)" />
+            
+            <!-- Oval Orange Belakang Tulisan Ahe -->
+            <ellipse cx="200" cy="135" rx="145" ry="60" fill="#ffffff" />
+            <ellipse cx="200" cy="135" rx="140" ry="55" fill="#f59e0b" />
+            <ellipse cx="200" cy="135" rx="134" ry="49" fill="#9d174d" />
+            
+            <!-- Teks "Ahe" -->
+            <text x="200" y="160" font-family="'Fredoka One', cursive" font-size="96" fill="#ffffff" text-anchor="middle" font-weight="900" filter="drop-shadow(3px 5px 2px rgba(0,0,0,0.4))">Ahe</text>
+            
+            <!-- Teks "Bimbel" miring -->
+            <text x="260" y="215" font-family="'Nunito', sans-serif" font-style="italic" font-weight="800" font-size="28" fill="#ffffff" text-anchor="middle">Bimbel</text>
+            
+            <!-- Pilar dan Buku Logo -->
+            <g transform="translate(70, 195)">
+              <!-- Alas Pilar -->
+              <path d="M 10 90 L 90 90 L 80 80 L 20 80 Z" fill="#ffffff" />
+              <path d="M 15 80 L 85 80 C 85 80, 50 65, 15 80 Z" fill="#f59e0b" />
+              <!-- Tiang Pilar -->
+              <rect x="25" y="42" width="10" height="38" fill="#ffffff" rx="2" />
+              <rect x="45" y="42" width="10" height="38" fill="#ffffff" rx="2" />
+              <rect x="65" y="42" width="10" height="38" fill="#ffffff" rx="2" />
+              <!-- Kepala Pilar -->
+              <rect x="18" y="32" width="64" height="10" fill="#ffffff" rx="3" />
+              <!-- Buku Terbuka di atas pilar -->
+              <path d="M 50 32 C 35 15, 20 15, 12 25 L 12 12 C 20 2, 35 2, 50 16 C 65 2, 80 2, 88 12 L 88 25 C 80 15, 65 15, 50 32 Z" fill="#ffffff" />
+              <path d="M 50 30 C 35 17, 22 17, 15 25 L 15 15 C 22 7, 35 7, 50 20 C 65 7, 78 7, 85 15 L 85 25 C 78 17, 65 17, 50 30 Z" fill="#ec4899" />
+              <line x1="50" y1="18" x2="50" y2="32" stroke="#ffffff" stroke-width="3" />
+            </g>
+            
+            <!-- Teks PILAR ILMU -->
+            <text x="245" y="252" font-family="'Fredoka One', cursive" font-size="46" fill="#ffffff" text-anchor="middle" font-weight="900" filter="drop-shadow(2px 2px 0px #b5179e)">PILAR</text>
+            <text x="245" y="302" font-family="'Fredoka One', cursive" font-size="52" fill="#ec4899" text-anchor="middle" font-weight="900" filter="drop-shadow(2px 2px 0px #ffffff)">ILMU</text>
+            
+            <!-- Pita Slogan Bawah -->
+            <rect x="70" y="325" width="260" height="30" rx="15" fill="#3b0764" />
+            <text x="200" y="344" font-family="'Nunito', sans-serif" font-weight="800" font-size="13" fill="#ffffff" text-anchor="middle">— Belajar • Berprestasi • Berkarakter —</text>
+          </svg>
+        </div>
+        <p class="text-yellow-400 font-bold tracking-wider text-xs uppercase">AHE Smart Game</p>
+        <p class="text-purple-200 text-sm italic mt-1">"Belajar Menyenangkan, Potensi Tak Terbatas."</p>
+      </div>
+
+      <!-- Form Identitas Siswa -->
+      <div class="w-full bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/20 my-4 shadow-inner">
+        <h3 class="text-center font-kids text-lg text-yellow-300 mb-3">Yuk, Isi Identitasmu dulu!</h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-purple-200 mb-1">Nama Lengkap</label>
+            <input type="text" id="input-nama" placeholder="Masukkan nama..." class="w-full bg-purple-950/50 border border-purple-400 rounded-lg px-3 py-2 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-purple-200 mb-1">Kelas</label>
+              <input type="text" id="input-kelas" placeholder="Contoh: 3 SD" class="w-full bg-purple-950/50 border border-purple-400 rounded-lg px-3 py-2 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-purple-200 mb-1">No. Absen</label>
+              <input type="number" id="input-absen" placeholder="No..." class="w-full bg-purple-950/50 border border-purple-400 rounded-lg px-3 py-2 text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-yellow-400 text-sm">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cara Bermain & Tombol Start -->
+      <div class="w-full text-center space-y-4">
+        <div class="text-xs text-purple-200 bg-purple-950/30 p-3 rounded-xl border border-purple-900/50 inline-block w-full">
+          <span class="font-bold text-yellow-300 block mb-1">🎈 CARA BERMAIN:</span>
+          Perhatikan pertanyaan perkalian 5 di atas screen. Cari balon dengan jawaban yang benar lalu klik/tap sebelum balon melayang hilang ke atas!
+        </div>
+        
+        <button onclick="mulaiPermainan()" class="w-full py-4 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-purple-950 font-kids text-xl rounded-2xl shadow-lg shadow-yellow-500/30 active:scale-95 transition transform duration-150">
+          MULAI BELAJAR! 🚀
+        </button>
+      </div>
+
+      <!-- Footer Hak Cipta -->
+      <div class="text-[10px] text-purple-300/60 mt-4 text-center">
+        © 2026 Bimbel AHE Pilar Ilmu. Semua Hak Cipta Dilindungi.
+      </div>
+    </div>
+
+    <!-- LAYER HALAMAN GAMEPLAY (UTAMA - Layout Vertikal Maksimal) -->
+    <div id="screen-gameplay" class="hidden flex-1 flex flex-col justify-between p-4 z-10 relative overflow-hidden h-full">
+      
+      <!-- Header HUD (Nama, Progress, Waktu, Skor) -->
+      <div class="w-full bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 flex flex-col gap-2 z-20">
+        <div class="flex justify-between items-center text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
+            <span id="hud-nama" class="font-bold text-yellow-300 max-w-[120px] truncate">Siswa</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="bg-purple-950/60 px-2 py-1 rounded border border-purple-700 font-mono">
+              ⏱️ <span id="hud-timer">00:00</span>
+            </div>
+            <div class="bg-amber-500 text-purple-950 px-2 py-1 rounded font-bold">
+              Skor: <span id="hud-score">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar Soal -->
+        <div class="space-y-1">
+          <div class="flex justify-between text-[10px] font-semibold text-purple-200">
+            <span>Progress Belajar</span>
+            <span id="hud-progress-text">Soal 1 dari 10</span>
+          </div>
+          <div class="w-full bg-purple-950/80 h-3 rounded-full overflow-hidden border border-purple-800">
+            <div id="hud-progress-bar" class="bg-gradient-to-r from-pink-500 to-yellow-400 h-full w-[10%]" style="transition: width 0.4s ease;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Area Pertanyaan (Papan Kayu Kartun) -->
+      <div class="w-full my-3 flex justify-center z-20">
+        <div class="bg-gradient-to-b from-amber-800 to-amber-950 px-8 py-2.5 rounded-2xl border-4 border-amber-600 shadow-lg text-center relative max-w-[280px]">
+          <!-- Gantungan Tali Kiri & Kanan -->
+          <div class="absolute -top-3 left-4 w-1.5 h-3.5 bg-gray-400 rounded"></div>
+          <div class="absolute -top-3 right-4 w-1.5 h-3.5 bg-gray-400 rounded"></div>
+          <div class="text-[10px] text-amber-300 uppercase tracking-widest font-bold">Hitunglah!</div>
+          <div id="game-question" class="text-3xl font-kids text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            5 x 4 = ?
+          </div>
+        </div>
+      </div>
+
+      <!-- AREA UTAMA BALON MELAYANG (Maksimalkan Tinggi Vertikal) -->
+      <div id="balloon-container" class="flex-1 w-full min-h-[380px] sm:min-h-[480px] relative overflow-hidden rounded-2xl bg-gradient-to-b from-sky-400/10 to-sky-950/20 border border-white/5 shadow-inner">
+        <!-- Floating Clouds background dekoratif -->
+        <div class="absolute top-8 left-4 opacity-10 animate-pulse pointer-events-none">☁️ Awan</div>
+        <div class="absolute top-24 right-8 opacity-15 animate-pulse pointer-events-none" style="animation-delay: 1s;">☁️ Awan</div>
+        <div class="absolute bottom-16 left-12 opacity-5 pointer-events-none">☁️ Awan</div>
+        
+        <!-- Balon-balon akan disisipkan di sini secara dinamis melalui JavaScript -->
+      </div>
+
+      <!-- Branding Kecil di Bawah Gameplay -->
+      <div class="w-full text-center mt-2 flex items-center justify-between text-[10px] text-purple-300/50 z-20">
+        <span>Bimbel AHE Pilar Ilmu</span>
+        <span>AHE Smart Game</span>
+      </div>
+    </div>
+
+    <!-- LAYER HALAMAN HASIL / EVALUASI -->
+    <div id="screen-result" class="hidden flex-1 flex flex-col items-center justify-between p-6 z-10 overflow-y-auto">
+      
+      <!-- Ucapan Selamat & Logo Kecil -->
+      <div class="text-center space-y-1 w-full">
+        <div class="text-yellow-400 font-kids text-2xl animate-bounce">HEBAT! KAMU SELESAI 🎉</div>
+        <p class="text-purple-200 text-sm">Hasil evaluasi belajar mandiri terakumulasi otomatis.</p>
+        
+        <!-- Kartu Identitas & Hasil -->
+        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 mt-4 text-left space-y-3">
+          <div class="border-b border-purple-800 pb-2 flex justify-between items-center">
+            <div>
+              <p class="text-[10px] text-purple-300 uppercase tracking-wider">Siswa AHE</p>
+              <h4 id="res-nama" class="font-kids text-lg text-yellow-300">Ahmad Dhani</h4>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] text-purple-300 uppercase tracking-wider">Kelas / Absen</p>
+              <p class="text-xs font-bold text-white"><span id="res-kelas">3 SD</span> / <span id="res-absen">12</span></p>
+            </div>
+          </div>
+
+          <!-- Statistik Utama -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-purple-950/60 p-2 rounded-lg border border-purple-800">
+              <span class="block text-[10px] text-purple-300">Skor Akhir</span>
+              <span id="res-skor" class="text-xl font-kids text-yellow-400">100</span>
+            </div>
+            <div class="bg-purple-950/60 p-2 rounded-lg border border-purple-800">
+              <span class="block text-[10px] text-purple-300">Akurasi</span>
+              <span id="res-akurasi" class="text-xl font-kids text-green-400">90%</span>
+            </div>
+            <div class="bg-purple-950/60 p-2 rounded-lg border border-purple-800">
+              <span class="block text-[10px] text-purple-300">Waktu</span>
+              <span id="res-waktu" class="text-xl font-mono text-cyan-400 font-bold">01:24</span>
+            </div>
+          </div>
+          
+          <div class="bg-purple-950/40 p-3 rounded-lg border border-purple-900/50 text-xs text-center text-purple-200">
+            💡 <span id="res-feedback">Pertahankan prestasimu, kamu menguasai materi perkalian ini dengan sangat baik!</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pembahasan Lembar Soal (Scrollable Area) -->
+      <div class="w-full my-4 flex-1 max-h-[180px] overflow-y-auto bg-purple-950/50 rounded-xl p-3 border border-purple-800">
+        <h5 class="text-xs font-bold text-yellow-400 mb-2 flex items-center gap-1">
+          <span>📝</span> Lembar Hasil Evaluasi & Pembahasan:
+        </h5>
+        <div id="pembahasan-list" class="space-y-2 text-xs">
+          <!-- Item pembahasan akan dirender di sini via JS -->
+        </div>
+      </div>
+
+      <!-- Tombol Replay -->
+      <div class="w-full space-y-3">
+        <button onclick="restartGame()" class="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-kids text-lg rounded-2xl shadow-lg shadow-green-500/20 active:scale-95 transition transform duration-150">
+          Main Lagi 🔄
+        </button>
+        <button onclick="kembaliKeMenu()" class="w-full py-2 bg-transparent hover:bg-white/5 text-purple-300 font-semibold text-xs rounded-xl transition">
+          Kembali ke Layar Utama
+        </button>
+      </div>
+
+      <!-- Footer Instansi -->
+      <div class="text-[10px] text-purple-400/50 mt-4 text-center">
+        Bimbel AHE Pilar Ilmu — Belajar Menyenangkan, Potensi Tak Terbatas.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT LOGIKA GAME (Offline Ready, No External Library, Audio Sintetis) -->
+  <script>
+    // --- VARIABEL KONFIGURASI SOAL (Sangat mudah diedit oleh Guru) ---
+    const DATA_SOAL = [
+      { q: "5 x 1", a: 5, options: [3, 5, 8, 10, 2] },
+      { q: "5 x 2", a: 10, options: [10, 12, 15, 8, 20] },
+      { q: "5 x 3", a: 15, options: [12, 15, 18, 20, 25] },
+      { q: "5 x 4", a: 20, options: [18, 22, 20, 25, 30] },
+      { q: "5 x 5", a: 25, options: [20, 30, 25, 15, 35] },
+      { q: "5 x 6", a: 30, options: [25, 35, 40, 30, 45] },
+      { q: "5 x 7", a: 35, options: [30, 40, 35, 45, 50] },
+      { q: "5 x 8", a: 40, options: [35, 45, 40, 50, 30] },
+      { q: "5 x 9", a: 45, options: [40, 50, 45, 55, 35] },
+      { q: "5 x 10", a: 50, options: [45, 50, 55, 60, 40] }
+    ];
+
+    // --- PENGATURAN KECEPATAN BALON ---
+    // Atur angka di bawah ini untuk mempercepat/memperlambat balon (Default: 0.35)
+    const BALLOON_SPEED = 0.35;
+
+    // --- STATE MANAGEMENT GAME ---
+    let userNama = "Siswa";
+    let userKelas = "-";
+    let userAbsen = "-";
+    
+    let activeQuestions = []; // Menyimpan daftar soal yang sudah diacak
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let clickTotal = 0; // untuk akurasi
+    let clickCorrect = 0;
+    let gameTimer = null;
+    let gameSeconds = 0;
+    let balloonsData = []; // Menyimpan objek-objek balon aktif
+    let gameActive = false;
+    let historyJawaban = []; // Menyimpan jawaban siswa untuk evaluasi akhir
+
+    // --- ELEMEN-ELEMEN DOM ---
+    const scrWelcome = document.getElementById('screen-welcome');
+    const scrGameplay = document.getElementById('screen-gameplay');
+    const scrResult = document.getElementById('screen-result');
+    const balloonContainer = document.getElementById('balloon-container');
+
+    // --- DETEKSI AUDIO SINTETIS (Web Audio API) ---
+    // Menghasilkan bunyi tanpa file audio eksternal sehingga game 100% luring
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playBeep(type) {
+      try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+          // Bunyi "Pop" ceria tinggi
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.15);
+        } else if (type === 'wrong') {
+          // Bunyi "Gagal" rendah bergetar
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+          osc.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.3);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'win') {
+          // Nada kemenangan beruntun
+          const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+          notes.forEach((freq, idx) => {
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+            o.type = 'sine';
+            o.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.1));
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime + (idx * 0.1));
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (idx * 0.1) + 0.25);
+            o.start(audioCtx.currentTime + (idx * 0.1));
+            o.stop(audioCtx.currentTime + (idx * 0.1) + 0.25);
+          });
+        }
+      } catch (e) {
+        console.log("Audio Context belum diizinkan atau tidak didukung browser ini.");
+      }
+    }
+
+    // --- INISIALISASI & NAVIGASI LAYAR ---
+    function mulaiPermainan() {
+      // Ambil identitas
+      const namaVal = document.getElementById('input-nama').value.trim();
+      const kelasVal = document.getElementById('input-kelas').value.trim();
+      const absenVal = document.getElementById('input-absen').value.trim();
+
+      userNama = namaVal || "Siswa Cerdas";
+      userKelas = kelasVal || "Umum";
+      userAbsen = absenVal || "-";
+
+      // Sinkronisasi data HUD
+      document.getElementById('hud-nama').textContent = userNama;
+      
+      // Berpindah Layar
+      scrWelcome.classList.add('hidden');
+      scrGameplay.classList.remove('hidden');
+
+      // Memulai Audio Context pada interaksi pertama
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      resetSesiGame();
+    }
+
+    function resetSesiGame() {
+      currentQuestionIndex = 0;
+      score = 0;
+      clickTotal = 0;
+      clickCorrect = 0;
+      gameSeconds = 0;
+      historyJawaban = [];
+      gameActive = true;
+
+      // ACAK SOAL (Shuffling) agar urutan pengerjaan bervariasi setiap sesi
+      activeQuestions = [...DATA_SOAL].sort(() => Math.random() - 0.5);
+
+      document.getElementById('hud-score').textContent = score;
+      
+      // Jalankan Timer
+      if (gameTimer) clearInterval(gameTimer);
+      gameTimer = setInterval(() => {
+        gameSeconds++;
+        const m = String(Math.floor(gameSeconds / 60)).padStart(2, '0');
+        const s = String(gameSeconds % 60).padStart(2, '0');
+        document.getElementById('hud-timer').textContent = `${m}:${s}`;
+      }, 1000);
+
+      memuatSoal();
+      loopAnimasi();
+    }
+
+    // --- MEMUAT SOAL & MEMBUAT BALON ---
+    function memuatSoal() {
+      if (currentQuestionIndex >= activeQuestions.length) {
+        selesaiPermainan();
+        return;
+      }
+
+      // Update HUD Progress
+      const totalSoal = activeQuestions.length;
+      document.getElementById('hud-progress-text').textContent = `Soal ${currentQuestionIndex + 1} dari ${totalSoal}`;
+      const progressPercent = ((currentQuestionIndex + 1) / totalSoal) * 100;
+      document.getElementById('hud-progress-bar').style.width = `${progressPercent}%`;
+
+      // Render Pertanyaan
+      const soalAktif = activeQuestions[currentQuestionIndex];
+      document.getElementById('game-question').textContent = `${soalAktif.q} = ?`;
+
+      // Bersihkan Balon Lama
+      balloonContainer.innerHTML = '';
+      balloonsData = [];
+
+      // Distribusi letak balon pada lajur horizontal agar tidak saling menumpuk penuh
+      const lanes = [8, 26, 44, 62, 80]; // Persentase posisi left
+      // Acak urutan lajur agar posisi pilihan jawaban bervariasi setiap load
+      const shuffledLanes = lanes.sort(() => Math.random() - 0.5);
+
+      // Desain warna balon bervariasi ceria (AHE standard)
+      const colors = [
+        { main: '#ef4444', light: '#f87171', shadow: '#b91c1c' }, // Merah
+        { main: '#3b82f6', light: '#60a5fa', shadow: '#1d4ed8' }, // Biru
+        { main: '#10b981', light: '#34d399', shadow: '#047857' }, // Hijau
+        { main: '#f59e0b', light: '#fbbf24', shadow: '#b45309' }, // Kuning Amber
+        { main: '#ec4899', light: '#f472b6', shadow: '#be185d' }  // Pink Magenta
+      ];
+
+      soalAktif.options.forEach((nilai, indeks) => {
+        const laneX = shuffledLanes[indeks];
+        const warna = colors[indeks % colors.length];
+        
+        // Buat Elemen Balon DOM
+        const balloonEl = document.createElement('div');
+        balloonEl.className = 'absolute cursor-pointer transition-transform duration-100 flex flex-col items-center select-none active:scale-95 z-10';
+        
+        // ACAK POSISI VERTIKAL (ADA YANG DI ATAS DAN DI BAWAH)
+        // Distribusi awal tersebar dari top 10% hingga 115% untuk visual yang dinamis sejak awal pengerjaan soal
+        const initialTop = 10 + (indeks * 20) + (Math.random() * 12); 
+        
+        balloonEl.style.left = `${laneX}%`;
+        balloonEl.style.top = `${initialTop}%`;
+
+        // String SVG Balon agar offline-ready dan responsif
+        balloonEl.innerHTML = `
+          <div class="relative flex items-center justify-center animate-pulse" style="width: 72px; height: 92px; animation-duration: ${3 + (Math.random() * 2)}s">
+            <svg viewBox="0 0 100 125" class="w-full h-full drop-shadow-md">
+              <!-- Balon Utama -->
+              <ellipse cx="50" cy="50" rx="42" ry="48" fill="${warna.main}" />
+              <!-- Sinar Pantulan Cahaya Atas -->
+              <ellipse cx="32" cy="24" rx="10" ry="14" fill="${warna.light}" transform="rotate(-15 32 24)" />
+              <!-- Simpul Bawah Balon -->
+              <polygon points="50,96 42,106 58,106" fill="${warna.shadow}" />
+              <!-- Tali Balon Bergelombang -->
+              <path d="M 50,106 Q 46,115 52,122 T 48,130" fill="none" stroke="#e2e8f0" stroke-width="2.5" />
+            </svg>
+            <!-- Label Angka Pilihan Jawaban -->
+            <div class="absolute inset-0 flex items-center justify-center pb-5">
+              <span class="font-kids text-2xl text-white drop-shadow-[0_2px_3px_rgba(0,0,0,0.6)]">${nilai}</span>
+            </div>
+          </div>
+        `;
+
+        // Event Click / Tap pada balon
+        balloonEl.addEventListener('click', (e) => {
+          tanganiKlikBalon(nilai, balloonEl);
+        });
+
+        balloonContainer.appendChild(balloonEl);
+
+        // Simpan data state balon untuk loop animasi
+        balloonsData.push({
+          element: balloonEl,
+          val: nilai,
+          y: initialTop,
+          speed: BALLOON_SPEED + (Math.random() * 0.05), // Kecepatan sedikit bervariasi agar gerakan alami
+          color: warna.main,
+          popped: false
+        });
+      });
+    }
+
+    // --- DETEKSI JAWABAN & INTERAKSI ---
+    function tanganiKlikBalon(nilaiDipilih, elemenBalon) {
+      if (!gameActive) return;
+      
+      const soalAktif = activeQuestions[currentQuestionIndex];
+      clickTotal++;
+
+      if (nilaiDipilih === soalAktif.a) {
+        // BENAR
+        clickCorrect++;
+        score += 10;
+        document.getElementById('hud-score').textContent = score;
+        
+        playBeep('correct');
+        buatPartikelPecah(elemenBalon); // MEMBUAT KONFETI WARNA-WARNI LOKAL
+        
+        // Simpan sejarah jawaban
+        historyJawaban.push({
+          q: soalAktif.q,
+          jawabanSiswa: nilaiDipilih,
+          benar: true,
+          kunci: soalAktif.a
+        });
+
+        // Efek Visual Balon Pecah
+        elemenBalon.classList.add('animate-pop');
+        
+        // Jeda sangat singkat agar efek pecah selesai lalu render soal baru
+        setTimeout(() => {
+          currentQuestionIndex++;
+          memuatSoal();
+        }, 250);
+
+      } else {
+        // SALAH
+        playBeep('wrong');
+        
+        // Efek goyang balon salah tanpa menggagalkan permainan
+        elemenBalon.classList.add('animate-shake');
+        setTimeout(() => {
+          elemenBalon.classList.remove('animate-shake');
+        }, 400);
+      }
+    }
+
+    // --- PARTIKEL LEDAKAN BALON WARNA-WARNI (KONFETI LOKAL) ---
+    function buatPartikelPecah(elemenBalon) {
+      const rect = elemenBalon.getBoundingClientRect();
+      const parentRect = balloonContainer.getBoundingClientRect();
+      
+      // Cari posisi tengah balon relatif terhadap kontainer langit
+      const posX = (rect.left - parentRect.left) + (rect.width / 2);
+      const posY = (rect.top - parentRect.top) + (rect.height / 2);
+
+      // Palet warna konfeti ceria warna-warni
+      const confettiColors = [
+        '#ef4444', '#3b82f6', '#10b981', '#f59e0b', 
+        '#ec4899', '#a855f7', '#06b6d4', '#f43f5e', 
+        '#eab308', '#22c55e'
+      ];
+
+      // Hasilkan 24 serpihan konfeti beragam bentuk beterbangan secara melingkar
+      for (let i = 0; i < 24; i++) {
+        const partikel = document.createElement('div');
+        const randomColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+        
+        // Tentukan bentuk: Lingkaran atau Persegi panjang kecil khas konfeti
+        const isCircle = Math.random() > 0.5;
+        partikel.className = `absolute pointer-events-none z-30 ${isCircle ? 'rounded-full' : 'rounded-sm'}`;
+        
+        // Tentukan ukuran acak
+        const size = 6 + Math.random() * 9;
+        partikel.style.width = `${size}px`;
+        partikel.style.height = `${isCircle ? size : size / 2}px`;
+        partikel.style.backgroundColor = randomColor;
+        partikel.style.left = `${posX}px`;
+        partikel.style.top = `${posY}px`;
+
+        balloonContainer.appendChild(partikel);
+
+        // Hitung sudut sebaran radial acak
+        const sudut = Math.random() * Math.PI * 2;
+        const jarak = 40 + (Math.random() * 85);
+        const targetX = Math.cos(sudut) * jarak;
+        const targetY = Math.sin(sudut) * jarak;
+        const targetRotation = (Math.random() * 360) + 180;
+
+        // Gunakan Web Animations API untuk animasi semburan konfeti yang sangat halus
+        partikel.animate([
+          { transform: 'translate(0, 0) rotate(0deg) scale(1)', opacity: 1 },
+          { transform: `translate(${targetX}px, ${targetY}px) rotate(${targetRotation}deg) scale(0.2)`, opacity: 0 }
+        ], {
+          duration: 650,
+          easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)' // Efek melambat di akhir ledakan
+        });
+
+        // Bersihkan partikel dari DOM setelah durasi animasi berakhir
+        setTimeout(() => {
+          partikel.remove();
+        }, 650);
+      }
+    }
+
+    // --- GAME LOOP ANIMASI JALAN (Melayangkan Balon) ---
+    function loopAnimasi() {
+      if (!gameActive) return;
+
+      balloonsData.forEach((balon) => {
+        if (!balon.popped) {
+          // Kurangi nilai y agar balon bergerak melayang ke atas
+          balon.y -= balon.speed;
+          balon.element.style.top = `${balon.y}%`;
+
+          // Jika balon melayang sampai atas layar (-15%), kembalikan ke bawah (loop)
+          // Memastikan permainan tidak mandek dan ramah anak
+          if (balon.y < -15) {
+            balon.y = 105;
+          }
+        }
+      });
+
+      requestAnimationFrame(loopAnimasi);
+    }
+
+    // --- AKHIR GAME & EVALUASI BELAJAR ---
+    function selesaiPermainan() {
+      gameActive = false;
+      if (gameTimer) clearInterval(gameTimer);
+
+      playBeep('win');
+      jalankanKonfeti(); // Konfeti layar penuh perayaan
+
+      // Transisi ke Layar Hasil
+      scrGameplay.classList.add('hidden');
+      scrResult.classList.remove('hidden');
+
+      // Tampilkan Data Hasil Identitas
+      document.getElementById('res-nama').textContent = userNama;
+      document.getElementById('res-kelas').textContent = userKelas;
+      document.getElementById('res-absen').textContent = userAbsen;
+
+      // Akurasi & Waktu
+      const akurasi = clickTotal > 0 ? Math.round((clickCorrect / clickTotal) * 100) : 0;
+      document.getElementById('res-skor').textContent = score;
+      document.getElementById('res-akurasi').textContent = `${akurasi}%`;
+      
+      const m = String(Math.floor(gameSeconds / 60)).padStart(2, '0');
+      const s = String(gameSeconds % 60).padStart(2, '0');
+      document.getElementById('res-waktu').textContent = `${m}:${s}`;
+
+      // Feedback Cerdas Berdasarkan Hasil Belajar
+      let feedback = "";
+      if (akurasi >= 90) {
+        feedback = "Luar biasa! Penguasaan materi perkalian 5 kamu sangat istimewa. Pertahankan prestasimu bersama AHE!";
+      } else if (akurasi >= 75) {
+        feedback = "Bagus sekali! Kamu sudah sangat mahir. Sedikit latihan lagi untuk mencapai nilai sempurna!";
+      } else {
+        feedback = "Jangan menyerah, kamu sudah berusaha dengan baik! Yuk coba lagi dan raih pemahaman yang lebih tinggi.";
+      }
+      document.getElementById('res-feedback').textContent = feedback;
+
+      // Render Hasil Pembahasan Lembar Soal (Sesuai dengan urutan soal yang baru dimainkan)
+      const pembahasanList = document.getElementById('pembahasan-list');
+      pembahasanList.innerHTML = '';
+
+      activeQuestions.forEach((soal, index) => {
+        const item = document.createElement('div');
+        item.className = 'bg-white/5 p-2 rounded-lg border border-purple-800/40 flex justify-between items-center gap-1';
+        
+        // Hitung cara konsep (Filosofi: Memahami konsep perkalian adalah penjumlahan berulang)
+        const pengali = parseInt(soal.q.split('x')[1].trim());
+        let deretTambah = Array(5).fill(pengali).join(' + ');
+
+        item.innerHTML = `
+          <div>
+            <span class="text-yellow-300 font-bold font-kids text-xs">${index + 1}. ${soal.q} = ${soal.a}</span>
+            <p class="text-[10px] text-purple-300">Konsep Penjumlahan: ${deretTambah} = ${soal.a}</p>
+          </div>
+          <div class="bg-green-500/10 text-green-300 border border-green-500/30 text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase">
+            Benar 🗸
+          </div>
+        `;
+        pembahasanList.appendChild(item);
+      });
+    }
+
+    // --- RETRY & RESET GAMEPLAY ---
+    function restartGame() {
+      scrResult.classList.add('hidden');
+      scrGameplay.classList.remove('hidden');
+      resetSesiGame();
+    }
+
+    function kembaliKeMenu() {
+      scrResult.classList.add('hidden');
+      scrWelcome.classList.remove('hidden');
+    }
+
+    // --- ALGORITMA EFEK KONFETI (Murni HTML5 Canvas - Mandiri) ---
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let confettiActive = false;
+    let confettiArray = [];
+
+    function jalankanKonfeti() {
+      canvas.classList.remove('hidden');
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      confettiActive = true;
+      confettiArray = [];
+
+      for (let i = 0; i < 60; i++) {
+        confettiArray.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * canvas.height,
+          color: `hsl(${Math.random() * 360}, 90%, 60%)`,
+          tilt: Math.random() * 10 - 5,
+          tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+          tiltAngle: 0
+        });
+      }
+
+      function updateConfetti() {
+        if (!confettiActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let activeCount = 0;
+        confettiArray.forEach((p) => {
+          p.tiltAngle += p.tiltAngleIncremental;
+          p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+          p.x += Math.sin(p.tiltAngle);
+          p.tilt = Math.sin(p.tiltAngle - p.r / 2) * 15;
+
+          if (p.y <= canvas.height) {
+            activeCount++;
+          }
+
+          ctx.beginPath();
+          ctx.lineWidth = p.r;
+          ctx.strokeStyle = p.color;
+          ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+          ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+          ctx.stroke();
+        });
+
+        if (activeCount > 0) {
+          requestAnimationFrame(updateConfetti);
+        } else {
+          canvas.classList.add('hidden');
+          confettiActive = false;
+        }
+      }
+
+      updateConfetti();
+    }
+  </script>
+</body>
+</html>

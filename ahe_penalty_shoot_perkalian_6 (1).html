@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AHE Smart Game - Penalty Shoot Perkalian 6</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;700&display=swap');
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: radial-gradient(circle, #2e1065 0%, #0f051d 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .font-bubble {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Custom scrollbar for review section */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d946ef;
+            border-radius: 10px;
+        }
+
+        /* Animations */
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow {
+            animation: bounce-slow 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(217, 70, 239, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(217, 70, 239, 0.9); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 1.5s infinite ease-in-out;
+        }
+
+        @keyframes fire-glow {
+            0%, 100% { text-shadow: 0 0 10px #f59e0b, 0 0 20px #ef4444, 0 0 30px #b91c1c; }
+            50% { text-shadow: 0 0 20px #fbbf24, 0 0 40px #f97316, 0 0 60px #ef4444; }
+        }
+        .animate-fire {
+            animation: fire-glow 0.8s infinite alternate;
+        }
+
+        /* Soccer Net pattern background */
+        .soccer-pitch {
+            background-color: #15803d;
+            background-image: radial-gradient(#16a34a 15%, transparent 20%),
+                              radial-gradient(#16a34a 15%, transparent 20%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        .goal-net {
+            background-color: rgba(255, 255, 255, 0.1);
+            background-image: linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+    </style>
+</head>
+<body class="text-white flex flex-col justify-between min-h-screen">
+
+    <!-- CANVAS UNTUK EFEK KONFETI -->
+    <canvas id="confetti-canvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50 hidden"></canvas>
+
+    <!-- HEADER BRANDING -->
+    <header class="w-full py-4 px-6 flex flex-col sm:flex-row justify-between items-center bg-opacity-20 bg-black backdrop-blur-md border-b border-purple-500/20 z-10">
+        <div class="flex items-center gap-3">
+            <!-- SVG LOGO RECREATION AHE PILAR ILMU -->
+            <svg class="w-14 h-14 drop-shadow-lg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="95" fill="url(#aheGrad)" stroke="#f59e0b" stroke-width="5"/>
+                <ellipse cx="100" cy="70" rx="75" ry="40" fill="url(#ovalGrad)" stroke="#f59e0b" stroke-width="4"/>
+                <text x="100" y="85" font-family="'Fredoka One', cursive" font-size="52" fill="#ffffff" text-anchor="middle" font-weight="bold" drop-shadow="0px 4px 4px rgba(0,0,0,0.5)">Ahe</text>
+                <!-- Pillar Icon and Book -->
+                <g transform="translate(45, 100)">
+                    <rect x="15" y="45" width="80" height="8" rx="2" fill="#ffffff" />
+                    <rect x="25" y="15" width="10" height="30" fill="#ffffff" />
+                    <rect x="50" y="15" width="10" height="30" fill="#ffffff" />
+                    <rect x="75" y="15" width="10" height="30" fill="#ffffff" />
+                    <path d="M 15 15 L 95 15 L 85 5 L 25 5 Z" fill="#ffffff" />
+                    <!-- Book on top -->
+                    <path d="M 30 0 Q 55 -15 55 5 Q 55 -15 80 0 L 80 -10 Q 55 -25 55 -5 Q 55 -25 30 -10 Z" fill="#f59e0b" />
+                </g>
+                <text x="120" y="125" font-family="'Quicksand', sans-serif" font-weight="bold" font-size="12" fill="#ffffff">Bimbel</text>
+                <text x="135" y="145" font-family="'Fredoka One', cursive" font-size="22" fill="#f43f5e" font-weight="black" text-anchor="middle">PILAR</text>
+                <text x="135" y="170" font-family="'Fredoka One', cursive" font-size="24" fill="#ffffff" font-weight="black" text-anchor="middle">ILMU</text>
+                <defs>
+                    <linearGradient id="aheGrad" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#ec4899" />
+                        <stop offset="50%" stop-color="#a855f7" />
+                        <stop offset="100%" stop-color="#312e81" />
+                    </linearGradient>
+                    <linearGradient id="ovalGrad" x1="25" y1="30" x2="175" y2="110" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#f43f5e" />
+                        <stop offset="100%" stop-color="#db2777" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div>
+                <h1 class="font-bubble text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-300">AHE Smart Game</h1>
+                <p class="text-xs text-amber-400 tracking-wider font-semibold">Bimbel AHE Pilar Ilmu</p>
+            </div>
+        </div>
+        <div class="text-center sm:text-right mt-2 sm:mt-0">
+            <span class="bg-purple-950/80 px-3 py-1.5 rounded-full border border-purple-500/30 text-xs sm:text-sm font-semibold text-pink-300">
+                🚀 Belajar Menyenangkan, Potensi Tak Terbatas
+            </span>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        
+        <!-- 1. HALAMAN PEMBUKA (REGISTRASI & PETUNJUK) -->
+        <section id="screen-welcome" class="w-full max-w-lg bg-gradient-to-b from-purple-900/90 to-indigo-950/95 p-6 rounded-3xl border-2 border-pink-500/30 shadow-2xl backdrop-blur-md transition-all duration-300">
+            <div class="text-center mb-6">
+                <span class="bg-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">Game Baru!</span>
+                <h2 class="font-bubble text-3xl sm:text-4xl text-amber-400 mt-2 tracking-wide drop-shadow">PENALTY SHOOT</h2>
+                <p class="text-sm text-purple-200 font-semibold">Materi: Perkalian Angka 6 (1 s.d. 10)</p>
+            </div>
+
+            <!-- Formulir Identitas Siswa -->
+            <form id="form-identity" class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-sm font-bold text-pink-300 mb-1" for="input-name">Nama Lengkap Siswa *</label>
+                    <input type="text" id="input-name" required placeholder="Masukkan nama lengkapmu..." 
+                        class="w-full px-4 py-3 bg-purple-950/80 border border-purple-500/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-purple-400 font-semibold transition-all">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-pink-300 mb-1" for="input-class">Kelas *</label>
+                        <select id="input-class" required class="w-full px-4 py-3 bg-purple-950/80 border border-purple-500/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white font-semibold transition-all">
+                            <option value="">Pilih...</option>
+                            <option value="1">Kelas 1</option>
+                            <option value="2">Kelas 2</option>
+                            <option value="3">Kelas 3</option>
+                            <option value="4">Kelas 4</option>
+                            <option value="5">Kelas 5</option>
+                            <option value="6">Kelas 6</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-pink-300 mb-1" for="input-absent">Nomor Absen *</label>
+                        <input type="number" id="input-absent" required min="1" max="50" placeholder="No" 
+                            class="w-full px-4 py-3 bg-purple-950/80 border border-purple-500/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-white placeholder-purple-400 font-semibold transition-all">
+                    </div>
+                </div>
+            </form>
+
+            <!-- Petunjuk Bermain -->
+            <div class="bg-black/40 rounded-2xl p-4 border border-purple-500/20 text-xs sm:text-sm space-y-2 text-purple-100 mb-6">
+                <h3 class="font-bold text-amber-300 flex items-center gap-1">
+                    <svg class="w-4 h-4 text-amber-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                    Cara Bermain:
+                </h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Selesaikan <span class="text-pink-300 font-bold">10 Tantangan Perkalian 6</span> acak sebelum waktu habis.</li>
+                    <li>Setiap soal memiliki batas waktu berpikir <span class="text-pink-300 font-bold">15 detik</span>.</li>
+                    <li>Pilih jawaban yang benar untuk mencetak <span class="text-green-400 font-bold">GOOOL!</span></li>
+                    <li>Dapatkan <span class="text-amber-300 font-bold">3 Jawaban Benar Berurutan (HATTRICK)</span> untuk meraih bonus <span class="text-amber-400 font-bold">+10 Poin!</span></li>
+                </ul>
+            </div>
+
+            <button type="button" id="btn-start" onclick="startGame()" 
+                class="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bubble text-lg rounded-2xl shadow-lg hover:shadow-pink-500/30 transition-all duration-200 transform active:scale-95 flex items-center justify-center gap-2">
+                ⚽ MULAI PERMAINAN
+            </button>
+        </section>
+
+        <!-- 2. HALAMAN GAMEPLAY UTAMA -->
+        <section id="screen-game" class="w-full max-w-4xl bg-gradient-to-b from-purple-950 to-indigo-950 p-4 sm:p-6 rounded-3xl border border-purple-500/30 shadow-2xl relative overflow-hidden hidden">
+            
+            <!-- Info Bar Atas -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-black/40 p-3 rounded-2xl border border-purple-500/20">
+                <!-- Pemain -->
+                <div class="flex items-center gap-2">
+                    <div class="bg-pink-600 rounded-lg p-1.5 text-xs font-bold" id="badge-student">Siswa</div>
+                    <span id="display-student-name" class="font-bold text-sm text-pink-200 truncate max-w-[120px] sm:max-w-[200px]">Nama</span>
+                </div>
+                <!-- Progres Soal -->
+                <div class="text-center">
+                    <span class="text-xs text-purple-300 block uppercase tracking-wider font-semibold">Progres Soal</span>
+                    <span id="display-progress" class="font-bubble text-lg text-amber-400">1 / 10</span>
+                </div>
+                <!-- Skor & Streak -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right">
+                        <span class="text-xs text-purple-300 block uppercase tracking-wider font-semibold">Skor</span>
+                        <span id="display-score" class="font-bubble text-lg text-green-400">0</span>
+                    </div>
+                    <div class="h-8 w-[1px] bg-purple-500/20"></div>
+                    <!-- Streak Fire Indicator -->
+                    <div class="text-center relative">
+                        <span class="text-xs text-purple-300 block uppercase tracking-wider font-semibold">Streak</span>
+                        <div class="flex items-center justify-center gap-0.5">
+                            <span id="display-streak" class="font-bubble text-lg text-orange-400">0</span>
+                            <span id="streak-flame" class="text-sm transition-transform duration-200">🔥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar & Timer -->
+            <div class="mb-4">
+                <div class="flex justify-between text-xs text-purple-300 mb-1 font-semibold">
+                    <span>Sisa Waktu Soal: <span id="timer-text" class="text-pink-400 font-bold">15s</span></span>
+                    <span id="bar-percentage">100%</span>
+                </div>
+                <div class="w-full h-3 bg-purple-950 rounded-full overflow-hidden border border-purple-500/20">
+                    <div id="progress-timer-bar" class="h-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-100 ease-linear" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <!-- Layout Konten Tengah: Soal & Lapangan Penalti -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                
+                <!-- SISI KIRI: Visual Penalti (7 Kolom di Desktop) -->
+                <div class="lg:col-span-7 flex flex-col justify-between soccer-pitch rounded-2xl p-4 border border-green-500/30 min-h-[250px] sm:min-h-[350px] relative overflow-hidden shadow-inner">
+                    
+                    <!-- Goal Post / Gawang -->
+                    <div class="w-full h-24 sm:h-36 border-t-8 border-x-8 border-white/95 rounded-t-lg relative goal-net mx-auto max-w-[400px]">
+                        <!-- Garis Gawang Bawah -->
+                        <div class="absolute bottom-0 left-0 w-full h-[2px] bg-white/20"></div>
+
+                        <!-- Kiper / Goalkeeper (SVG) -->
+                        <div id="goalkeeper" class="absolute bottom-2 left-1/2 -translate-x-1/2 w-12 h-16 sm:w-16 sm:h-20 transition-all duration-500 ease-out z-10">
+                            <!-- SVG Kiper Kartun Lucu -->
+                            <svg viewBox="0 0 64 80" class="w-full h-full drop-shadow-md">
+                                <!-- Head & Hair -->
+                                <circle cx="32" cy="18" r="10" fill="#fbcfe8" />
+                                <path d="M 22 14 Q 32 6 42 14" stroke="#4c1d95" stroke-width="4" fill="none" />
+                                <circle cx="29" cy="17" r="1.5" fill="#000" />
+                                <circle cx="35" cy="17" r="1.5" fill="#000" />
+                                <path d="M 30 22 Q 32 24 34 22" stroke="#000" stroke-width="1.5" fill="none" />
+                                <!-- Body Jersey (Purple) -->
+                                <path d="M 20 28 L 44 28 L 46 55 L 18 55 Z" fill="#9d174d" />
+                                <rect x="25" y="28" width="14" height="27" fill="#f59e0b" /> <!-- Stripe -->
+                                <text x="32" y="46" fill="#fff" font-size="12" font-family="'Fredoka One'" text-anchor="middle">Ahe</text>
+                                <!-- Arms with Gloves -->
+                                <line id="arm-l" x1="20" y1="32" x2="8" y2="24" stroke="#fbcfe8" stroke-width="5" stroke-linecap="round" />
+                                <line id="arm-r" x1="44" y1="32" x2="56" y2="24" stroke="#fbcfe8" stroke-width="5" stroke-linecap="round" />
+                                <circle id="glove-l" cx="7" cy="23" r="4.5" fill="#f59e0b" />
+                                <circle id="glove-r" cx="57" cy="23" r="4.5" fill="#f59e0b" />
+                                <!-- Legs & Shoes -->
+                                <rect x="23" y="55" width="6" height="15" fill="#1e1b4b" />
+                                <rect x="35" y="55" width="6" height="15" fill="#1e1b4b" />
+                                <rect x="18" y="70" width="12" height="6" rx="3" fill="#ffffff" />
+                                <rect x="34" y="70" width="12" height="6" rx="3" fill="#ffffff" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Lapangan Rumput Tengah (Titik Penalti) -->
+                    <div class="relative flex-grow flex items-end justify-center py-4">
+                        <!-- Spot Penalti -->
+                        <div class="w-4 h-2 bg-white/40 rounded-full mb-1"></div>
+
+                        <!-- Bola Sepak (SVG) -->
+                        <div id="soccer-ball" class="absolute bottom-4 left-1/2 -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 transition-all duration-700 ease-out z-20">
+                            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-xl animate-bounce-slow">
+                                <!-- Outer Ball -->
+                                <circle cx="50" cy="50" r="47" fill="#ffffff" stroke="#1e293b" stroke-width="3" />
+                                <!-- Soccer pentagon patches -->
+                                <polygon points="50,30 65,42 60,60 40,60 35,42" fill="#1e293b" />
+                                <polygon points="50,30 35,42 20,38 18,20 35,10" fill="#1e293b" />
+                                <polygon points="50,30 65,42 80,38 82,20 65,10" fill="#1e293b" />
+                                <polygon points="60,60 40,60 30,75 50,88 70,75" fill="#1e293b" />
+                                <polygon points="40,60 35,42 20,38 10,50 15,70 30,75" fill="#1e293b" />
+                                <polygon points="65,42 80,38 90,50 85,70 70,75" fill="#1e293b" />
+                                <!-- Highlights/shadows -->
+                                <path d="M 15 25 Q 40 10 75 25" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Overlay Notifikasi Dinamis (GOOOL!, SAVED!, HATTRICK!) -->
+                    <div id="feedback-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 z-30">
+                        <h2 id="feedback-title" class="font-bubble text-5xl sm:text-6xl text-amber-400 tracking-wider text-center drop-shadow-lg">GOOOL!</h2>
+                        <p id="feedback-subtitle" class="text-sm sm:text-base text-white font-semibold mt-2 text-center bg-purple-900/80 px-4 py-1.5 rounded-full border border-purple-400/40">Jawabanmu Benar!</p>
+                    </div>
+                </div>
+
+                <!-- SISI KANAN: Panel Pertanyaan & Pilihan (5 Kolom di Desktop) -->
+                <div class="lg:col-span-5 flex flex-col justify-between bg-black/40 p-4 rounded-2xl border border-purple-500/20">
+                    <!-- Pertanyaan Matematika -->
+                    <div class="text-center py-6 px-4 bg-gradient-to-r from-purple-900 to-pink-900 rounded-xl border border-pink-500/20 shadow-inner">
+                        <span class="text-xs text-pink-300 font-bold uppercase tracking-wider block mb-1">Pertanyaan</span>
+                        <h3 id="question-text" class="font-bubble text-4xl sm:text-5xl text-white tracking-wide">6 &times; 7 = ?</h3>
+                        <p class="text-xs text-purple-200 mt-2">Pilihlah salah satu jawaban yang benar di bawah ini!</p>
+                    </div>
+
+                    <!-- Pilihan Jawaban -->
+                    <div id="answer-grid" class="grid grid-cols-2 gap-3 mt-4">
+                        <!-- Buttons will be injected here dynamically -->
+                        <button class="py-4 bg-purple-800 hover:bg-pink-600 border-2 border-purple-600/40 rounded-xl font-bubble text-2xl transition-all shadow-md active:scale-95">24</button>
+                        <button class="py-4 bg-purple-800 hover:bg-pink-600 border-2 border-purple-600/40 rounded-xl font-bubble text-2xl transition-all shadow-md active:scale-95">30</button>
+                        <button class="py-4 bg-purple-800 hover:bg-pink-600 border-2 border-purple-600/40 rounded-xl font-bubble text-2xl transition-all shadow-md active:scale-95">36</button>
+                        <button class="py-4 bg-purple-800 hover:bg-pink-600 border-2 border-purple-600/40 rounded-xl font-bubble text-2xl transition-all shadow-md active:scale-95">42</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- 3. HALAMAN HASIL BELAJAR / SCOREBOARD -->
+        <section id="screen-result" class="w-full max-w-2xl bg-gradient-to-b from-purple-900/95 to-indigo-950/98 p-6 rounded-3xl border-2 border-pink-500/40 shadow-2xl backdrop-blur-md transition-all duration-300 hidden">
+            <div class="text-center mb-6">
+                <span class="bg-amber-400 text-purple-950 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest font-bubble">Laporan Hasil Belajar</span>
+                <h2 class="font-bubble text-3xl sm:text-4xl text-pink-400 mt-2">PERMAINAN SELESAI!</h2>
+                <p class="text-sm text-purple-200">Terima kasih sudah belajar perkalian 6 bersama Ahe.</p>
+            </div>
+
+            <!-- Detail Nilai Siswa -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Kartu Identitas -->
+                <div class="bg-black/40 p-4 rounded-2xl border border-purple-500/20 flex flex-col justify-center">
+                    <h3 class="text-pink-300 text-xs font-bold uppercase tracking-wider mb-2">Identitas Siswa</h3>
+                    <p class="font-bold text-lg" id="result-name">Nama Siswa</p>
+                    <div class="flex gap-4 mt-1 text-sm text-purple-200">
+                        <p>Kelas: <span id="result-class" class="font-semibold text-white">3</span></p>
+                        <p>No. Absen: <span id="result-absent" class="font-semibold text-white">12</span></p>
+                    </div>
+                </div>
+
+                <!-- Kartu Skor & Akurasi -->
+                <div class="bg-black/40 p-4 rounded-2xl border border-purple-500/20 grid grid-cols-2 gap-2 text-center">
+                    <div>
+                        <span class="text-xs text-purple-300 block uppercase font-bold">Total Skor</span>
+                        <span id="result-score" class="font-bubble text-3xl text-amber-400">120</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-purple-300 block uppercase font-bold">Akurasi</span>
+                        <span id="result-accuracy" class="font-bubble text-3xl text-green-400">80%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluasi Singkat -->
+            <div class="bg-purple-950/80 p-4 rounded-2xl border border-purple-500/30 text-center mb-6">
+                <h4 class="text-xs uppercase text-pink-300 tracking-wider font-bold mb-1">Evaluasi Ahe</h4>
+                <p id="result-eval-text" class="text-sm font-semibold text-white">Luar biasa! Kamu sudah menguasai perkalian angka 6 dengan sangat baik.</p>
+            </div>
+
+            <!-- Review Soal (Analisis Salah/Benar) -->
+            <div class="mb-6">
+                <h3 class="text-sm font-bold text-purple-200 mb-2 flex items-center gap-1">
+                    🔍 Analisis Jawaban Anda:
+                </h3>
+                <div id="review-list" class="max-h-[160px] overflow-y-auto space-y-2 pr-1">
+                    <!-- Item review akan dimasukkan lewat JS -->
+                </div>
+            </div>
+
+            <!-- Tombol Navigasi Akhir -->
+            <div class="flex gap-4">
+                <button onclick="restartGame()" 
+                    class="flex-1 py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bubble rounded-2xl shadow-lg transition-all duration-200 transform active:scale-95">
+                    🔄 MAIN LAGI
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full py-4 text-center text-xs text-purple-300 bg-black/40 border-t border-purple-500/10 z-10">
+        <p>&copy; 2026 Bimbel AHE Pilar Ilmu. All Rights Reserved.</p>
+        <p class="text-purple-400 mt-1">Dikembangkan oleh AHE Smart Games - Media Pembelajaran Digital Kreatif</p>
+    </footer>
+
+    <!-- LOGIK GAME (JAVASCRIPT) -->
+    <script>
+        // ----------------- KONFIGURASI AUDIO SINTETIS (Web Audio API) -----------------
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSynthesizedSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'kick') {
+                // Suara tendangan bola (low frequency thud)
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } 
+            else if (type === 'goal') {
+                // Suara Sorak Gol (Simulasi peluit ceria)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } 
+            else if (type === 'saved') {
+                // Suara Gagal (Kiper menepis - Thud sedih)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } 
+            else if (type === 'hattrick') {
+                // Suara Hattrick meriah (Arpeggio naik ceria)
+                const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                freqs.forEach((f, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    g.gain.setValueAtTime(0.2, audioCtx.currentTime + (i * 0.1));
+                    g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.1) + 0.25);
+                    o.start(audioCtx.currentTime + (i * 0.1));
+                    o.stop(audioCtx.currentTime + (i * 0.1) + 0.25);
+                });
+            }
+        }
+
+        // ----------------- SISTEM UTAMA GAME -----------------
+        let studentData = { name: "", class: "", absent: "" };
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let timer = null;
+        let timeLeft = 15; // 15 detik per soal
+        const maxTime = 15;
+        let isAnsweringBlocked = false;
+        let stats = []; // Untuk melacak salah / benar & detail perkalian untuk evaluasi akhir
+
+        // 1. Generate 10 Perkalian 6 Acak (Pengali 1-10)
+        function generateQuestions() {
+            let multipliers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            // Acak urutan multiplier
+            multipliers.sort(() => Math.random() - 0.5);
+            
+            questions = multipliers.map((mult) => {
+                const correctAns = 6 * mult;
+                // Generate 3 jawaban salah yang masuk akal
+                let options = new Set([correctAns]);
+                while(options.size < 4) {
+                    // Berikan alternatif pengecoh perkalian terdekat (misal kelipatan 6 lain)
+                    let offset = (Math.floor(Math.random() * 5) - 2) * 6; // -12, -6, 0, 6, 12
+                    let wrong = correctAns + offset;
+                    if (wrong <= 0 || wrong > 80) {
+                        wrong = Math.floor(Math.random() * 10) * 6 + 6;
+                    }
+                    options.add(wrong);
+                }
+                
+                return {
+                    num: mult,
+                    question: `6 × ${mult}`,
+                    correct: correctAns,
+                    choices: Array.from(options).sort(() => Math.random() - 0.5)
+                };
+            });
+        }
+
+        // 2. Transisi Screen
+        function showScreen(screenId) {
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // 3. Memulai Permainan dari Welcome Screen
+        function startGame() {
+            const name = document.getElementById('input-name').value.trim();
+            const cls = document.getElementById('input-class').value;
+            const absent = document.getElementById('input-absent').value.trim();
+
+            if (!name || !cls || !absent) {
+                alert("Silakan lengkapi semua data identitas terlebih dahulu ya!");
+                return;
+            }
+
+            studentData = { name, class: cls, absent };
+            
+            // Set header display
+            document.getElementById('display-student-name').textContent = studentData.name;
+            document.getElementById('badge-student').textContent = `KLS ${studentData.class} / Absen ${studentData.absent}`;
+
+            // Reset Game States
+            score = 0;
+            streak = 0;
+            currentQuestionIndex = 0;
+            stats = [];
+            document.getElementById('display-score').textContent = score;
+            document.getElementById('display-streak').textContent = streak;
+
+            generateQuestions();
+            showScreen('screen-game');
+            loadQuestion();
+        }
+
+        // 4. Memuat Soal Baru ke Layar
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame();
+                return;
+            }
+
+            isAnsweringBlocked = false;
+            resetVisualPositions(); // Kembalikan kiper dan bola ke tengah
+
+            const q = questions[currentQuestionIndex];
+            
+            // Render Text Soal & Progress
+            document.getElementById('question-text').innerHTML = `${q.question} = <span class="text-pink-300">?</span>`;
+            document.getElementById('display-progress').textContent = `${currentQuestionIndex + 1} / ${questions.length}`;
+
+            // Render Pilihan Jawaban
+            const grid = document.getElementById('answer-grid');
+            grid.innerHTML = "";
+            q.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = "py-4 bg-purple-800 hover:bg-pink-600 border-2 border-purple-600/40 rounded-xl font-bubble text-2xl transition-all shadow-md active:scale-95 text-white";
+                btn.textContent = choice;
+                btn.onclick = () => checkAnswer(choice);
+                grid.appendChild(btn);
+            });
+
+            // Mulai Timer
+            timeLeft = maxTime;
+            updateTimerDisplay();
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeOutHandler();
+                }
+            }, 1000);
+        }
+
+        // 5. Update Visual Timer Progress Bar
+        function updateTimerDisplay() {
+            document.getElementById('timer-text').textContent = `${timeLeft}s`;
+            const percentage = (timeLeft / maxTime) * 100;
+            document.getElementById('bar-percentage').textContent = `${Math.round(percentage)}%`;
+            
+            const bar = document.getElementById('progress-timer-bar');
+            bar.style.width = `${percentage}%`;
+
+            // Warnai bar berubah merah ketika kritis
+            if (timeLeft <= 4) {
+                bar.className = "h-full bg-red-500 transition-all duration-100 ease-linear";
+            } else {
+                bar.className = "h-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-100 ease-linear";
+            }
+        }
+
+        // 6. Handler Jika Waktu Berpikir Habis
+        function timeOutHandler() {
+            if (isAnsweringBlocked) return;
+            isAnsweringBlocked = true;
+
+            // Block all answer buttons
+            disableAnswerButtons();
+
+            // Simpan statistik gagal karena kehabisan waktu
+            const q = questions[currentQuestionIndex];
+            stats.push({
+                question: q.question,
+                correct: q.correct,
+                userAnswer: "Waktu Habis",
+                status: false,
+                reason: "Kehabisan waktu berpikir."
+            });
+
+            // Animasi kiper menangkap bola (karena tendangan lemah / tidak ditendang)
+            playSynthesizedSound('saved');
+            animateShoot(false, 'center'); // Kiper langsung nangkap tengah
+            showFeedback(false, "WAKTU HABIS!", "Yuk lebih cepat berpikir!");
+
+            streak = 0;
+            document.getElementById('display-streak').textContent = streak;
+
+            // Next question otomatis
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2200);
+        }
+
+        // 7. Menonaktifkan Sementara Tombol Pilihan Jawaban
+        function disableAnswerButtons() {
+            const btns = document.getElementById('answer-grid').getElementsByTagName('button');
+            for (let b of btns) {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // 8. Cek Jawaban User
+        function checkAnswer(selectedChoice) {
+            if (isAnsweringBlocked) return;
+            isAnsweringBlocked = true;
+            clearInterval(timer);
+            disableAnswerButtons();
+
+            const q = questions[currentQuestionIndex];
+            const isCorrect = (selectedChoice === q.correct);
+
+            // Tentukan target tendangan secara acak (kiri-atas, kanan-atas, kiri-bawah, kanan-bawah)
+            const corners = ['left-top', 'right-top', 'left-bottom', 'right-bottom'];
+            const chosenCorner = corners[Math.floor(Math.random() * corners.length)];
+
+            if (isCorrect) {
+                // SUKSES GOL
+                playSynthesizedSound('kick');
+                setTimeout(() => playSynthesizedSound('goal'), 300);
+                
+                score += 10;
+                streak++;
+                document.getElementById('display-score').textContent = score;
+                document.getElementById('display-streak').textContent = streak;
+
+                // Animasi visual tendangan masuk
+                animateShoot(true, chosenCorner);
+
+                // Cek Hattrick Streak bonus (kelipatan 3 kali berturut-turut)
+                let hattrickBonus = false;
+                if (streak > 0 && streak % 3 === 0) {
+                    hattrickBonus = true;
+                    score += 10; // Tambahan bonus +10 poin
+                    document.getElementById('display-score').textContent = score;
+                    setTimeout(() => playSynthesizedSound('hattrick'), 700);
+                }
+
+                // Munculkan Feedback
+                setTimeout(() => {
+                    if (hattrickBonus) {
+                        showFeedback(true, "💥 HATTRICK! 💥", "Wow, 3x berturut-turut! Bonus +10 Poin!");
+                        triggerConfetti();
+                    } else {
+                        showFeedback(true, "⚽ GOOOL! ⚽", "Hebat! Jawabanmu sangat tepat.");
+                    }
+                }, 500);
+
+                stats.push({
+                    question: q.question,
+                    correct: q.correct,
+                    userAnswer: selectedChoice,
+                    status: true,
+                    reason: "Benar"
+                });
+
+            } else {
+                // GAGAL DISELAMATKAN KIPER
+                playSynthesizedSound('kick');
+                setTimeout(() => playSynthesizedSound('saved'), 350);
+
+                streak = 0;
+                document.getElementById('display-streak').textContent = streak;
+
+                // Animasi tendangan ditepis (Kiper lompat ke target bola)
+                animateShoot(false, chosenCorner);
+
+                setTimeout(() => {
+                    showFeedback(false, "🧤 SAVED! 🧤", `Perkalian yang benar adalah: ${q.correct}`);
+                }, 500);
+
+                stats.push({
+                    question: q.question,
+                    correct: q.correct,
+                    userAnswer: selectedChoice,
+                    status: false,
+                    reason: `Salah (Jawaban Anda: ${selectedChoice})`
+                });
+            }
+
+            // Transisi ke Soal berikutnya dalam 2.5 detik
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2500);
+        }
+
+        // 9. Reset Posisi Bola & Kiper ke Posisi Awal
+        function resetVisualPositions() {
+            const ball = document.getElementById('soccer-ball');
+            const keeper = document.getElementById('goalkeeper');
+            const feedback = document.getElementById('feedback-overlay');
+
+            // Sembunyikan Overlay feedback
+            feedback.classList.remove('opacity-100');
+            feedback.classList.add('opacity-0');
+
+            // Reset Bola
+            ball.style.transform = "translateX(-50%) scale(1)";
+            ball.style.left = "50%";
+            ball.style.bottom = "16px";
+            ball.classList.add('animate-bounce-slow');
+
+            // Reset Kiper
+            keeper.style.transform = "translateX(-50%)";
+            keeper.style.left = "50%";
+            keeper.style.bottom = "8px";
+
+            // Reset Tangan Kiper
+            document.getElementById('arm-l').setAttribute('y2', '24');
+            document.getElementById('glove-l').setAttribute('cy', '23');
+            document.getElementById('arm-r').setAttribute('y2', '24');
+            document.getElementById('glove-r').setAttribute('cy', '23');
+        }
+
+        // 10. Logika Visual Gerakan Bola & Kiper
+        function animateShoot(isGoal, targetCorner) {
+            const ball = document.getElementById('soccer-ball');
+            const keeper = document.getElementById('goalkeeper');
+
+            // Matikan animasi santai mental-mentul bola
+            ball.classList.remove('animate-bounce-slow');
+
+            // Koordinat arah tendangan gawang
+            let ballX = "50%";
+            let ballY = "180px"; // Ketinggian gawang default
+            let scaleVal = "0.35"; // Bola mengecil saat meluncur jauh
+
+            // Koordinat kiper bereaksi
+            let keeperX = "50%";
+            let keeperY = "8px";
+
+            switch(targetCorner) {
+                case 'left-top':
+                    ballX = "15%";
+                    ballY = "200px";
+                    if (isGoal) {
+                        // Kiper melompat ke kanan bawah (arah berlawanan)
+                        keeperX = "80%";
+                        keeperY = "-10px";
+                    } else {
+                        // Kiper menepis ke kiri atas (arah sama)
+                        keeperX = "18%";
+                        keeperY = "20px";
+                        stretchArms('up-left');
+                    }
+                    break;
+                case 'right-top':
+                    ballX = "85%";
+                    ballY = "200px";
+                    if (isGoal) {
+                        keeperX = "20%";
+                        keeperY = "-10px";
+                    } else {
+                        keeperX = "82%";
+                        keeperY = "20px";
+                        stretchArms('up-right');
+                    }
+                    break;
+                case 'left-bottom':
+                    ballX = "18%";
+                    ballY = "120px";
+                    if (isGoal) {
+                        keeperX = "80%";
+                        keeperY = "20px";
+                    } else {
+                        keeperX = "20%";
+                        keeperY = "-5px";
+                        stretchArms('down-left');
+                    }
+                    break;
+                case 'right-bottom':
+                    ballX = "82%";
+                    ballY = "120px";
+                    if (isGoal) {
+                        keeperX = "20%"
+                        keeperY = "20px";
+                    } else {
+                        keeperX = "80%";
+                        keeperY = "-5px";
+                        stretchArms('down-right');
+                    }
+                    break;
+                case 'center':
+                    // Kasus timeout / tendangan pelan ke tengah gawang
+                    ballX = "50%";
+                    ballY = "110px";
+                    keeperX = "50%";
+                    keeperY = "8px";
+                    break;
+            }
+
+            // Eksekusi Animasi CSS Bola meluncur ke gawang
+            ball.style.left = ballX;
+            ball.style.bottom = ballY;
+            ball.style.transform = `translateX(-50%) scale(${scaleVal}) rotate(360deg)`;
+
+            // Eksekusi Animasi CSS Kiper melompat menyelamatkan
+            keeper.style.left = keeperX;
+            keeper.style.bottom = keeperY;
+
+            // Jika bola ditepis, beri efek pantulan balik bola sedikit setelah menabrak kiper
+            if (!isGoal && targetCorner !== 'center') {
+                setTimeout(() => {
+                    ball.style.bottom = "60px"; // Memantul ke bawah sedikit
+                    ball.style.transform = `translateX(-50%) scale(0.42) rotate(180deg)`;
+                }, 400);
+            }
+        }
+
+        // Pembantu gerakan tangan kiper agar lebih hidup saat menepis
+        function stretchArms(dir) {
+            const armL = document.getElementById('arm-l');
+            const gloveL = document.getElementById('glove-l');
+            const armR = document.getElementById('arm-r');
+            const gloveR = document.getElementById('glove-r');
+
+            if (dir.includes('up-left') || dir.includes('down-left')) {
+                armL.setAttribute('y2', '8');
+                gloveL.setAttribute('cy', '7');
+            } else {
+                armR.setAttribute('y2', '8');
+                gloveR.setAttribute('cy', '7');
+            }
+        }
+
+        // 11. Menampilkan Overlay Hasil Instan (GOOL/SAVED)
+        function showFeedback(isCorrect, title, subtitle) {
+            const overlay = document.getElementById('feedback-overlay');
+            const titleEl = document.getElementById('feedback-title');
+            const subEl = document.getElementById('feedback-subtitle');
+
+            titleEl.textContent = title;
+            subEl.textContent = subtitle;
+
+            if (isCorrect) {
+                titleEl.className = "font-bubble text-5xl sm:text-6xl text-green-400 tracking-wider text-center drop-shadow-md";
+                if (title.includes("HATTRICK")) {
+                    titleEl.className = "font-bubble text-5xl sm:text-6xl text-amber-400 tracking-wider text-center animate-fire drop-shadow-lg";
+                }
+                subEl.className = "text-sm sm:text-base text-white font-semibold mt-2 text-center bg-green-900/90 px-6 py-2 rounded-full border border-green-400/40";
+            } else {
+                titleEl.className = "font-bubble text-5xl sm:text-6xl text-red-400 tracking-wider text-center drop-shadow-md";
+                subEl.className = "text-sm sm:text-base text-white font-semibold mt-2 text-center bg-red-950/90 px-6 py-2 rounded-full border border-red-500/40";
+            }
+
+            overlay.classList.remove('opacity-0');
+            overlay.classList.add('opacity-100');
+        }
+
+        // 12. Mengakhiri Game & Menampilkan Laporan Belajar Siswa
+        function endGame() {
+            clearInterval(timer);
+            showScreen('screen-result');
+            triggerConfetti();
+
+            // Pasang identitas di halaman hasil
+            document.getElementById('result-name').textContent = studentData.name;
+            document.getElementById('result-class').textContent = studentData.class;
+            document.getElementById('result-absent').textContent = studentData.absent;
+
+            // Hitung statistik nilai
+            const totalQuestions = questions.length;
+            const correctCount = stats.filter(s => s.status === true).length;
+            const accuracy = Math.round((correctCount / totalQuestions) * 100);
+
+            document.getElementById('result-score').textContent = score;
+            document.getElementById('result-accuracy').textContent = `${accuracy}%`;
+
+            // Atur pesan evaluasi guru sesuai performa akurasi
+            const evalEl = document.getElementById('result-eval-text');
+            if (accuracy === 100) {
+                evalEl.textContent = "🏆 LUAR BIASA SEMPURNA! Kamu hebat sekali, menguasai perkalian 6 dengan luar biasa. Pertahankan prestasimu bersama Ahe! 🎉";
+                evalEl.className = "text-sm font-bold text-amber-400";
+            } else if (accuracy >= 80) {
+                evalEl.textContent = "⭐ SANGAT BAGUS! Pemahamanmu terhadap perkalian 6 sudah matang dan sangat teliti. Terus berlatih agar jadi juara! 🚀";
+                evalEl.className = "text-sm font-semibold text-green-300";
+            } else if (accuracy >= 60) {
+                evalEl.textContent = "👍 CUKUP BAIK! Kamu sudah mampu menghitung perkalian 6. Yuk belajar lagi sedikit agar refleks hitungmu makin kilat! ⚡";
+                evalEl.className = "text-sm font-semibold text-yellow-300";
+            } else {
+                evalEl.textContent = "📚 MARI BELAJAR LAGI! Jangan berkecil hati ya. Perkalian angka 6 memang seru jika terus dilatih bersama Ahe. Mainkan lagi yuk untuk memperkuat memorimu! 💪";
+                evalEl.className = "text-sm font-semibold text-pink-300";
+            }
+
+            // Tampilkan list analisis jawaban
+            const reviewList = document.getElementById('review-list');
+            reviewList.innerHTML = "";
+            stats.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `p-3 rounded-xl text-xs sm:text-sm flex justify-between items-center ${item.status ? 'bg-green-950/40 border border-green-500/20' : 'bg-red-950/40 border border-red-500/20'}`;
+                
+                const statusBadge = item.status 
+                    ? `<span class="bg-green-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px]">GOL</span>`
+                    : `<span class="bg-red-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px]">MISSED</span>`;
+
+                itemDiv.innerHTML = `
+                    <div>
+                        <div class="font-bold flex items-center gap-1.5 text-white">
+                            <span>No. ${index + 1}: ${item.question} = ${item.correct}</span>
+                            ${statusBadge}
+                        </div>
+                        <div class="text-[11px] text-purple-300 mt-1">Status: ${item.reason}</div>
+                    </div>
+                `;
+                reviewList.appendChild(itemDiv);
+            });
+        }
+
+        // 13. Restart Game (Balik ke Pembuka / Isi data lagi)
+        function restartGame() {
+            document.getElementById('input-name').value = "";
+            document.getElementById('input-absent').value = "";
+            document.getElementById('input-class').value = "";
+            showScreen('screen-welcome');
+        }
+
+
+        // ----------------- ENGINE EFEK KONFETI SIMPLE (Canvas) -----------------
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiActive = false;
+        let confettiParticles = [];
+        const colors = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#fbbf24', '#34d399', '#60a5fa'];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function triggerConfetti() {
+            resizeCanvas();
+            confettiParticles = [];
+            confettiActive = true;
+            canvas.classList.remove('hidden');
+
+            // Generate particles
+            for (let i = 0; i < 120; i++) {
+                confettiParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+
+            animateConfetti();
+            
+            // Berhenti otomatis setelah 4 detik
+            setTimeout(() => {
+                confettiActive = false;
+                canvas.classList.add('hidden');
+            }, 4000);
+        }
+
+        function animateConfetti() {
+            if (!confettiActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            confettiParticles.forEach((p, index) => {
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle);
+                p.tilt = Math.sin(p.tiltAngle - index/3) * 15;
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                ctx.stroke();
+
+                // Jika jatuh ke bawah layar, reset ke atas lagi selama aktif
+                if (p.y > canvas.height) {
+                    p.x = Math.random() * canvas.width;
+                    p.y = -20;
+                    p.tilt = Math.random() * 10 - 5;
+                }
+            });
+
+            requestAnimationFrame(animateConfetti);
+        }
+
+    </script>
+</body>
+</html>
